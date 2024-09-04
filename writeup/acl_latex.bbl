@@ -1,0 +1,393 @@
+\begin{thebibliography}{32}
+\providecommand{\natexlab}[1]{#1}
+
+\bibitem[{Aharoni and Goldberg(2018)}]{aharoni-goldberg-2018-split}
+Roee Aharoni and Yoav Goldberg. 2018.
+\newblock \href {https://doi.org/10.18653/v1/P18-2114} {Split and rephrase:
+  Better evaluation and stronger baselines}.
+\newblock In \emph{Proceedings of the 56th Annual Meeting of the Association
+  for Computational Linguistics (Volume 2: Short Papers)}, pages 719--724,
+  Melbourne, Australia. Association for Computational Linguistics.
+
+\bibitem[{Aharoni and Goldberg(2020)}]{aharoni-goldberg-2020-unsupervised}
+Roee Aharoni and Yoav Goldberg. 2020.
+\newblock \href {https://doi.org/10.18653/v1/2020.acl-main.692} {Unsupervised
+  domain clusters in pretrained language models}.
+\newblock In \emph{Proceedings of the 58th Annual Meeting of the Association
+  for Computational Linguistics}, pages 7747--7763, Online. Association for
+  Computational Linguistics.
+
+\bibitem[{Arora et~al.(2021)Arora, Ostapenko, Viswanathan, Dalmia, Metze,
+  Watanabe, and Black}]{arora2021}
+Siddhant Arora, Alissa Ostapenko, Vijay Viswanathan, Siddharth Dalmia, Florian
+  Metze, Shinji Watanabe, and Alan~W. Black. 2021.
+\newblock \href {https://api.semanticscholar.org/CorpusID:235669959}
+  {Rethinking end-to-end evaluation of decomposable tasks: A case study on
+  spoken language understanding}.
+\newblock In \emph{Interspeech}.
+
+\bibitem[{Batsuren et~al.(2022)Batsuren, Goldman, Khalifa, Habash, Kiera{\'s},
+  Bella, Leonard, Nicolai, Gorman, Ate, Ryskina, Mielke, Budianskaya,
+  El-Khaissi, Pimentel, Gasser, Lane, Raj, Coler, Samame, Camaiteri, Rojas,
+  L{\'o}pez~Francis, Oncevay, L{\'o}pez~Bautista, Villegas, Hennigen, Ek,
+  Guriel, Dirix, Bernardy, Scherbakov, Bayyr-ool, Anastasopoulos, Zariquiey,
+  Sheifer, Ganieva, Cruz, Karah{\'o}{\v{g}}a, Markantonatou, Pavlidis,
+  Plugaryov, Klyachko, Salehi, Angulo, Baxi, Krizhanovsky, Krizhanovskaya,
+  Salesky, Vania, Ivanova, White, Maudslay, Valvoda, Zmigrod, Czarnowska,
+  Nikkarinen, Salchak, Bhatt, Straughn, Liu, Washington, Pinter, Ataman,
+  Wolinski, Suhardijanto, Yablonskaya, Stoehr, Dolatian, Nuriah, Ratan, Tyers,
+  Ponti, Aiton, Arora, Hatcher, Kumar, Young, Rodionova, Yemelina, Andrushko,
+  Marchenko, Mashkovtseva, Serova, Prud{'}hommeaux, Nepomniashchaya,
+  Giunchiglia, Chodroff, Hulden, Silfverberg, McCarthy, Yarowsky, Cotterell,
+  Tsarfaty, and Vylomova}]{batsuren-etal-2022-unimorph}
+Khuyagbaatar Batsuren, Omer Goldman, Salam Khalifa, Nizar Habash, Witold
+  Kiera{\'s}, G{\'a}bor Bella, Brian Leonard, Garrett Nicolai, Kyle Gorman,
+  Yustinus~Ghanggo Ate, Maria Ryskina, Sabrina Mielke, Elena Budianskaya,
+  Charbel El-Khaissi, Tiago Pimentel, Michael Gasser, William~Abbott Lane,
+  Mohit Raj, Matt Coler, Jaime Rafael~Montoya Samame, Delio~Siticonatzi
+  Camaiteri, Esa{\'u}~Zumaeta Rojas, Didier L{\'o}pez~Francis, Arturo Oncevay,
+  Juan L{\'o}pez~Bautista, Gema Celeste~Silva Villegas, Lucas~Torroba Hennigen,
+  Adam Ek, David Guriel, Peter Dirix, Jean-Philippe Bernardy, Andrey
+  Scherbakov, Aziyana Bayyr-ool, Antonios Anastasopoulos, Roberto Zariquiey,
+  Karina Sheifer, Sofya Ganieva, Hilaria Cruz, Ritv{\'a}n Karah{\'o}{\v{g}}a,
+  Stella Markantonatou, George Pavlidis, Matvey Plugaryov, Elena Klyachko, Ali
+  Salehi, Candy Angulo, Jatayu Baxi, Andrew Krizhanovsky, Natalia
+  Krizhanovskaya, Elizabeth Salesky, Clara Vania, Sardana Ivanova, Jennifer
+  White, Rowan~Hall Maudslay, Josef Valvoda, Ran Zmigrod, Paula Czarnowska,
+  Irene Nikkarinen, Aelita Salchak, Brijesh Bhatt, Christopher Straughn, Zoey
+  Liu, Jonathan~North Washington, Yuval Pinter, Duygu Ataman, Marcin Wolinski,
+  Totok Suhardijanto, Anna Yablonskaya, Niklas Stoehr, Hossep Dolatian, Zahroh
+  Nuriah, Shyam Ratan, Francis~M. Tyers, Edoardo~M. Ponti, Grant Aiton, Aryaman
+  Arora, Richard~J. Hatcher, Ritesh Kumar, Jeremiah Young, Daria Rodionova,
+  Anastasia Yemelina, Taras Andrushko, Igor Marchenko, Polina Mashkovtseva,
+  Alexandra Serova, Emily Prud{'}hommeaux, Maria Nepomniashchaya, Fausto
+  Giunchiglia, Eleanor Chodroff, Mans Hulden, Miikka Silfverberg, Arya~D.
+  McCarthy, David Yarowsky, Ryan Cotterell, Reut Tsarfaty, and Ekaterina
+  Vylomova. 2022.
+\newblock \href {https://aclanthology.org/2022.lrec-1.89} {{U}ni{M}orph 4.0:
+  {U}niversal {M}orphology}.
+\newblock In \emph{Proceedings of the Thirteenth Language Resources and
+  Evaluation Conference}, pages 840--855, Marseille, France. European Language
+  Resources Association.
+
+\bibitem[{Canby et~al.(2020)Canby, Karipbayeva, Lunt, Mozaffari, Yoder, and
+  Hockenmaier}]{canby-etal-2020-university}
+Marc Canby, Aidana Karipbayeva, Bryan Lunt, Sahand Mozaffari, Charlotte Yoder,
+  and Julia Hockenmaier. 2020.
+\newblock \href {https://doi.org/10.18653/v1/2020.sigmorphon-1.15}
+  {{U}niversity of {I}llinois submission to the {SIGMORPHON} 2020 shared task
+  0: Typologically diverse morphological inflection}.
+\newblock In \emph{Proceedings of the 17th SIGMORPHON Workshop on Computational
+  Research in Phonetics, Phonology, and Morphology}, pages 137--145, Online.
+  Association for Computational Linguistics.
+
+\bibitem[{Cotterell et~al.(2018)Cotterell, Kirov, Sylak-Glassman, Walther,
+  Vylomova, McCarthy, Kann, Mielke, Nicolai, Silfverberg, Yarowsky, Eisner, and
+  Hulden}]{cotterell-etal-2018-conll}
+Ryan Cotterell, Christo Kirov, John Sylak-Glassman, G{\'e}raldine Walther,
+  Ekaterina Vylomova, Arya~D. McCarthy, Katharina Kann, Sabrina~J. Mielke,
+  Garrett Nicolai, Miikka Silfverberg, David Yarowsky, Jason Eisner, and Mans
+  Hulden. 2018.
+\newblock \href {https://doi.org/10.18653/v1/K18-3001} {The
+  {C}o{NLL}{--}{SIGMORPHON} 2018 shared task: Universal morphological
+  reinflection}.
+\newblock In \emph{Proceedings of the {C}o{NLL}{--}{SIGMORPHON} 2018 Shared
+  Task: Universal Morphological Reinflection}, pages 1--27, Brussels.
+  Association for Computational Linguistics.
+
+\bibitem[{Cotterell et~al.(2017)Cotterell, Kirov, Sylak-Glassman, Walther,
+  Vylomova, Xia, Faruqui, K{\"u}bler, Yarowsky, Eisner, and
+  Hulden}]{cotterell-etal-2017-conll}
+Ryan Cotterell, Christo Kirov, John Sylak-Glassman, G{\'e}raldine Walther,
+  Ekaterina Vylomova, Patrick Xia, Manaal Faruqui, Sandra K{\"u}bler, David
+  Yarowsky, Jason Eisner, and Mans Hulden. 2017.
+\newblock \href {https://doi.org/10.18653/v1/K17-2001} {{C}o{NLL}-{SIGMORPHON}
+  2017 shared task: Universal morphological reinflection in 52 languages}.
+\newblock In \emph{Proceedings of the {C}o{NLL} {SIGMORPHON} 2017 Shared Task:
+  Universal Morphological Reinflection}, pages 1--30, Vancouver. Association
+  for Computational Linguistics.
+
+\bibitem[{Cotterell et~al.(2016)Cotterell, Kirov, Sylak-Glassman, Yarowsky,
+  Eisner, and Hulden}]{cotterell-etal-2016-sigmorphon}
+Ryan Cotterell, Christo Kirov, John Sylak-Glassman, David Yarowsky, Jason
+  Eisner, and Mans Hulden. 2016.
+\newblock \href {https://doi.org/10.18653/v1/W16-2002} {The {SIGMORPHON} 2016
+  shared {T}ask{---}{M}orphological reinflection}.
+\newblock In \emph{Proceedings of the 14th {SIGMORPHON} Workshop on
+  Computational Research in Phonetics, Phonology, and Morphology}, pages
+  10--22, Berlin, Germany. Association for Computational Linguistics.
+
+\bibitem[{Finegan-Dollak et~al.(2018)Finegan-Dollak, Kummerfeld, Zhang,
+  Ramanathan, Sadasivam, Zhang, and Radev}]{finegan-dollak-etal-2018-improving}
+Catherine Finegan-Dollak, Jonathan~K. Kummerfeld, Li~Zhang, Karthik Ramanathan,
+  Sesh Sadasivam, Rui Zhang, and Dragomir Radev. 2018.
+\newblock \href {https://doi.org/10.18653/v1/P18-1033} {Improving text-to-{SQL}
+  evaluation methodology}.
+\newblock In \emph{Proceedings of the 56th Annual Meeting of the Association
+  for Computational Linguistics (Volume 1: Long Papers)}, pages 351--360,
+  Melbourne, Australia. Association for Computational Linguistics.
+
+\bibitem[{Gardner et~al.(2020)Gardner, Artzi, Basmov, Berant, Bogin, Chen,
+  Dasigi, Dua, Elazar, Gottumukkala, Gupta, Hajishirzi, Ilharco, Khashabi, Lin,
+  Liu, Liu, Mulcaire, Ning, Singh, Smith, Subramanian, Tsarfaty, Wallace,
+  Zhang, and Zhou}]{gardner-etal-2020-evaluating}
+Matt Gardner, Yoav Artzi, Victoria Basmov, Jonathan Berant, Ben Bogin, Sihao
+  Chen, Pradeep Dasigi, Dheeru Dua, Yanai Elazar, Ananth Gottumukkala, Nitish
+  Gupta, Hannaneh Hajishirzi, Gabriel Ilharco, Daniel Khashabi, Kevin Lin,
+  Jiangming Liu, Nelson~F. Liu, Phoebe Mulcaire, Qiang Ning, Sameer Singh,
+  Noah~A. Smith, Sanjay Subramanian, Reut Tsarfaty, Eric Wallace, Ally Zhang,
+  and Ben Zhou. 2020.
+\newblock \href {https://doi.org/10.18653/v1/2020.findings-emnlp.117}
+  {Evaluating models{'} local decision boundaries via contrast sets}.
+\newblock In \emph{Findings of the Association for Computational Linguistics:
+  EMNLP 2020}, pages 1307--1323, Online. Association for Computational
+  Linguistics.
+
+\bibitem[{Goldman et~al.(2023)Goldman, Batsuren, Khalifa, Arora, Nicolai,
+  Tsarfaty, and Vylomova}]{goldman-etal-2023-sigmorphon}
+Omer Goldman, Khuyagbaatar Batsuren, Salam Khalifa, Aryaman Arora, Garrett
+  Nicolai, Reut Tsarfaty, and Ekaterina Vylomova. 2023.
+\newblock \href {https://doi.org/10.18653/v1/2023.sigmorphon-1.13}
+  {{SIGMORPHON}{--}{U}ni{M}orph 2023 shared task 0: Typologically diverse
+  morphological inflection}.
+\newblock In \emph{Proceedings of the 20th SIGMORPHON workshop on Computational
+  Research in Phonetics, Phonology, and Morphology}, pages 117--125, Toronto,
+  Canada. Association for Computational Linguistics.
+
+\bibitem[{Goldman et~al.(2022)Goldman, Guriel, and
+  Tsarfaty}]{goldman-etal-2022-un}
+Omer Goldman, David Guriel, and Reut Tsarfaty. 2022.
+\newblock \href {https://doi.org/10.18653/v1/2022.acl-short.96} {(un)solving
+  morphological inflection: Lemma overlap artificially inflates models{'}
+  performance}.
+\newblock In \emph{Proceedings of the 60th Annual Meeting of the Association
+  for Computational Linguistics (Volume 2: Short Papers)}, pages 864--870,
+  Dublin, Ireland. Association for Computational Linguistics.
+
+\bibitem[{Gorman and Bedrick(2019)}]{gorman-bedrick-2019-need}
+Kyle Gorman and Steven Bedrick. 2019.
+\newblock \href {https://doi.org/10.18653/v1/P19-1267} {We need to talk about
+  standard splits}.
+\newblock In \emph{Proceedings of the 57th Annual Meeting of the Association
+  for Computational Linguistics}, pages 2786--2791, Florence, Italy.
+  Association for Computational Linguistics.
+
+\bibitem[{Kann and Sch{\"u}tze(2016)}]{kann-schutze-2016-med}
+Katharina Kann and Hinrich Sch{\"u}tze. 2016.
+\newblock \href {https://doi.org/10.18653/v1/W16-2010} {{MED}: The {LMU} system
+  for the {SIGMORPHON} 2016 shared task on morphological reinflection}.
+\newblock In \emph{Proceedings of the 14th {SIGMORPHON} Workshop on
+  Computational Research in Phonetics, Phonology, and Morphology}, pages
+  62--70, Berlin, Germany. Association for Computational Linguistics.
+
+\bibitem[{Kodner and Khalifa(2022)}]{kodner-khalifa-2022-sigmorphon}
+Jordan Kodner and Salam Khalifa. 2022.
+\newblock \href {https://doi.org/10.18653/v1/2022.sigmorphon-1.18}
+  {{SIGMORPHON}{--}{U}ni{M}orph 2022 shared task 0: Modeling inflection in
+  language acquisition}.
+\newblock In \emph{Proceedings of the 19th SIGMORPHON Workshop on Computational
+  Research in Phonetics, Phonology, and Morphology}, pages 157--175, Seattle,
+  Washington. Association for Computational Linguistics.
+
+\bibitem[{Kodner et~al.(2022)Kodner, Khalifa, Batsuren, Dolatian, Cotterell,
+  Akkus, Anastasopoulos, Andrushko, Arora, Atanalov, Bella, Budianskaya,
+  Ghanggo~Ate, Goldman, Guriel, Guriel, Guriel-Agiashvili, Kiera{\'s},
+  Krizhanovsky, Krizhanovsky, Marchenko, Markowska, Mashkovtseva,
+  Nepomniashchaya, Rodionova, Scheifer, Sorova, Yemelina, Young, and
+  Vylomova}]{kodner-etal-2022-sigmorphon}
+Jordan Kodner, Salam Khalifa, Khuyagbaatar Batsuren, Hossep Dolatian, Ryan
+  Cotterell, Faruk Akkus, Antonios Anastasopoulos, Taras Andrushko, Aryaman
+  Arora, Nona Atanalov, G{\'a}bor Bella, Elena Budianskaya, Yustinus
+  Ghanggo~Ate, Omer Goldman, David Guriel, Simon Guriel, Silvia
+  Guriel-Agiashvili, Witold Kiera{\'s}, Andrew Krizhanovsky, Natalia
+  Krizhanovsky, Igor Marchenko, Magdalena Markowska, Polina Mashkovtseva, Maria
+  Nepomniashchaya, Daria Rodionova, Karina Scheifer, Alexandra Sorova,
+  Anastasia Yemelina, Jeremiah Young, and Ekaterina Vylomova. 2022.
+\newblock \href {https://doi.org/10.18653/v1/2022.sigmorphon-1.19}
+  {{SIGMORPHON}{--}{U}ni{M}orph 2022 shared task 0: Generalization and
+  typologically diverse morphological inflection}.
+\newblock In \emph{Proceedings of the 19th SIGMORPHON Workshop on Computational
+  Research in Phonetics, Phonology, and Morphology}, pages 176--203, Seattle,
+  Washington. Association for Computational Linguistics.
+
+\bibitem[{Kodner et~al.(2023{\natexlab{a}})Kodner, Khalifa, Payne, and
+  Liu}]{kodner2023re}
+Jordan Kodner, Salam Khalifa, Sarah~RB Payne, and Zoey Liu. 2023{\natexlab{a}}.
+\newblock Re-evaluating the evaluation of neural morphological inflection
+  models.
+\newblock In \emph{Proceedings of the Annual Meeting of the Cognitive Science
+  Society}, volume~45.
+
+\bibitem[{Kodner et~al.(2023{\natexlab{b}})Kodner, Khalifa, and
+  Payne}]{kodner-etal-2023-exploring}
+Jordan Kodner, Salam Khalifa, and Sarah Ruth~Brogden Payne. 2023{\natexlab{b}}.
+\newblock \href {https://doi.org/10.18653/v1/2023.emnlp-main.552} {Exploring
+  linguistic probes for morphological generalization}.
+\newblock In \emph{Proceedings of the 2023 Conference on Empirical Methods in
+  Natural Language Processing}, pages 8933--8941, Singapore. Association for
+  Computational Linguistics.
+
+\bibitem[{Kodner et~al.(2023{\natexlab{c}})Kodner, Payne, Khalifa, and
+  Liu}]{kodner-etal-2023-morphological}
+Jordan Kodner, Sarah Payne, Salam Khalifa, and Zoey Liu. 2023{\natexlab{c}}.
+\newblock \href {https://doi.org/10.18653/v1/2023.acl-long.335} {Morphological
+  inflection: A reality check}.
+\newblock In \emph{Proceedings of the 61st Annual Meeting of the Association
+  for Computational Linguistics (Volume 1: Long Papers)}, pages 6082--6101,
+  Toronto, Canada. Association for Computational Linguistics.
+
+\bibitem[{Lachmy et~al.(2022)Lachmy, Pyatkin, Manevich, and
+  Tsarfaty}]{lachmy2022}
+Royi Lachmy, Valentina Pyatkin, Avshalom Manevich, and Reut Tsarfaty. 2022.
+\newblock \href {https://doi.org/10.1162/tacl_a_00522} {{Draw Me a Flower:
+  Processing and Grounding Abstraction in Natural Language}}.
+\newblock \emph{Transactions of the Association for Computational Linguistics},
+  10:1341--1356.
+
+\bibitem[{Liu and Hulden(2020)}]{liu-hulden-2020-leveraging}
+Ling Liu and Mans Hulden. 2020.
+\newblock \href {https://doi.org/10.18653/v1/2020.sigmorphon-1.17} {Leveraging
+  principal parts for morphological inflection}.
+\newblock In \emph{Proceedings of the 17th SIGMORPHON Workshop on Computational
+  Research in Phonetics, Phonology, and Morphology}, pages 153--161, Online.
+  Association for Computational Linguistics.
+
+\bibitem[{Loula et~al.(2018)Loula, Baroni, and
+  Lake}]{loula-etal-2018-rearranging}
+Jo{\~a}o Loula, Marco Baroni, and Brenden Lake. 2018.
+\newblock \href {https://doi.org/10.18653/v1/W18-5413} {Rearranging the
+  familiar: Testing compositional generalization in recurrent networks}.
+\newblock In \emph{Proceedings of the 2018 {EMNLP} Workshop {B}lackbox{NLP}:
+  Analyzing and Interpreting Neural Networks for {NLP}}, pages 108--114,
+  Brussels, Belgium. Association for Computational Linguistics.
+
+\bibitem[{Martins and Astudillo(2016)}]{sparsemax}
+Andre Martins and Ramon Astudillo. 2016.
+\newblock \href {https://proceedings.mlr.press/v48/martins16.html} {From
+  softmax to sparsemax: A sparse model of attention and multi-label
+  classification}.
+\newblock In \emph{Proceedings of The 33rd International Conference on Machine
+  Learning}, volume~48 of \emph{Proceedings of Machine Learning Research},
+  pages 1614--1623, New York, New York, USA. PMLR.
+
+\bibitem[{McCarthy et~al.(2020)McCarthy, Kirov, Grella, Nidhi, Xia, Gorman,
+  Vylomova, Mielke, Nicolai, Silfverberg, Arkhangelskiy, Krizhanovsky,
+  Krizhanovsky, Klyachko, Sorokin, Mansfield, Ern{\v{s}}treits, Pinter, Jacobs,
+  Cotterell, Hulden, and Yarowsky}]{mccarthy-etal-2020-unimorph}
+Arya~D. McCarthy, Christo Kirov, Matteo Grella, Amrit Nidhi, Patrick Xia, Kyle
+  Gorman, Ekaterina Vylomova, Sabrina~J. Mielke, Garrett Nicolai, Miikka
+  Silfverberg, Timofey Arkhangelskiy, Nataly Krizhanovsky, Andrew Krizhanovsky,
+  Elena Klyachko, Alexey Sorokin, John Mansfield, Valts Ern{\v{s}}treits, Yuval
+  Pinter, Cassandra~L. Jacobs, Ryan Cotterell, Mans Hulden, and David Yarowsky.
+  2020.
+\newblock \href {https://aclanthology.org/2020.lrec-1.483} {{U}ni{M}orph 3.0:
+  {U}niversal {M}orphology}.
+\newblock In \emph{Proceedings of the Twelfth Language Resources and Evaluation
+  Conference}, pages 3922--3931, Marseille, France. European Language Resources
+  Association.
+
+\bibitem[{McCarthy et~al.(2019)McCarthy, Vylomova, Wu, Malaviya, Wolf-Sonkin,
+  Nicolai, Kirov, Silfverberg, Mielke, Heinz, Cotterell, and
+  Hulden}]{mccarthy-etal-2019-sigmorphon}
+Arya~D. McCarthy, Ekaterina Vylomova, Shijie Wu, Chaitanya Malaviya, Lawrence
+  Wolf-Sonkin, Garrett Nicolai, Christo Kirov, Miikka Silfverberg, Sabrina~J.
+  Mielke, Jeffrey Heinz, Ryan Cotterell, and Mans Hulden. 2019.
+\newblock \href {https://doi.org/10.18653/v1/W19-4226} {The {SIGMORPHON} 2019
+  shared task: Morphological analysis in context and cross-lingual transfer for
+  inflection}.
+\newblock In \emph{Proceedings of the 16th Workshop on Computational Research
+  in Phonetics, Phonology, and Morphology}, pages 229--244, Florence, Italy.
+  Association for Computational Linguistics.
+
+\bibitem[{Narayan et~al.(2017)Narayan, Gardent, Cohen, and
+  Shimorina}]{narayan-etal-2017-split}
+Shashi Narayan, Claire Gardent, Shay~B. Cohen, and Anastasia Shimorina. 2017.
+\newblock \href {https://doi.org/10.18653/v1/D17-1064} {Split and rephrase}.
+\newblock In \emph{Proceedings of the 2017 Conference on Empirical Methods in
+  Natural Language Processing}, pages 606--616, Copenhagen, Denmark.
+  Association for Computational Linguistics.
+
+\bibitem[{Peters and Martins(2020)}]{peters-martins-2020-one}
+Ben Peters and Andr{\'e} F.~T. Martins. 2020.
+\newblock \href {https://doi.org/10.18653/v1/2020.sigmorphon-1.4}
+  {One-size-fits-all multilingual models}.
+\newblock In \emph{Proceedings of the 17th SIGMORPHON Workshop on Computational
+  Research in Phonetics, Phonology, and Morphology}, pages 63--69, Online.
+  Association for Computational Linguistics.
+
+\bibitem[{Pimentel et~al.(2021)Pimentel, Ryskina, Mielke, Wu, Chodroff,
+  Leonard, Nicolai, Ghanggo~Ate, Khalifa, Habash, El-Khaissi, Goldman, Gasser,
+  Lane, Coler, Oncevay, Montoya~Samame, Silva~Villegas, Ek, Bernardy,
+  Shcherbakov, Bayyr-ool, Sheifer, Ganieva, Plugaryov, Klyachko, Salehi,
+  Krizhanovsky, Krizhanovsky, Vania, Ivanova, Salchak, Straughn, Liu,
+  Washington, Ataman, Kiera{\'s}, Woli{\'n}ski, Suhardijanto, Stoehr, Nuriah,
+  Ratan, Tyers, Ponti, Aiton, Hatcher, Prud{'}hommeaux, Kumar, Hulden, Barta,
+  Lakatos, Szolnok, {\'A}cs, Raj, Yarowsky, Cotterell, Ambridge, and
+  Vylomova}]{pimentel-ryskina-etal-2021-sigmorphon}
+Tiago Pimentel, Maria Ryskina, Sabrina~J. Mielke, Shijie Wu, Eleanor Chodroff,
+  Brian Leonard, Garrett Nicolai, Yustinus Ghanggo~Ate, Salam Khalifa, Nizar
+  Habash, Charbel El-Khaissi, Omer Goldman, Michael Gasser, William Lane, Matt
+  Coler, Arturo Oncevay, Jaime~Rafael Montoya~Samame, Gema~Celeste
+  Silva~Villegas, Adam Ek, Jean-Philippe Bernardy, Andrey Shcherbakov, Aziyana
+  Bayyr-ool, Karina Sheifer, Sofya Ganieva, Matvey Plugaryov, Elena Klyachko,
+  Ali Salehi, Andrew Krizhanovsky, Natalia Krizhanovsky, Clara Vania, Sardana
+  Ivanova, Aelita Salchak, Christopher Straughn, Zoey Liu, Jonathan~North
+  Washington, Duygu Ataman, Witold Kiera{\'s}, Marcin Woli{\'n}ski, Totok
+  Suhardijanto, Niklas Stoehr, Zahroh Nuriah, Shyam Ratan, Francis~M. Tyers,
+  Edoardo~M. Ponti, Grant Aiton, Richard~J. Hatcher, Emily Prud{'}hommeaux,
+  Ritesh Kumar, Mans Hulden, Botond Barta, Dorina Lakatos, G{\'a}bor Szolnok,
+  Judit {\'A}cs, Mohit Raj, David Yarowsky, Ryan Cotterell, Ben Ambridge, and
+  Ekaterina Vylomova. 2021.
+\newblock \href {https://doi.org/10.18653/v1/2021.sigmorphon-1.25}
+  {{SIGMORPHON} 2021 shared task on morphological reinflection: Generalization
+  across languages}.
+\newblock In \emph{Proceedings of the 18th SIGMORPHON Workshop on Computational
+  Research in Phonetics, Phonology, and Morphology}, pages 229--259, Online.
+  Association for Computational Linguistics.
+
+\bibitem[{Rajpurkar et~al.(2018)Rajpurkar, Jia, and
+  Liang}]{rajpurkar-etal-2018-know}
+Pranav Rajpurkar, Robin Jia, and Percy Liang. 2018.
+\newblock \href {https://doi.org/10.18653/v1/P18-2124} {Know what you don{'}t
+  know: Unanswerable questions for {SQ}u{AD}}.
+\newblock In \emph{Proceedings of the 56th Annual Meeting of the Association
+  for Computational Linguistics (Volume 2: Short Papers)}, pages 784--789,
+  Melbourne, Australia. Association for Computational Linguistics.
+
+\bibitem[{S{\o}gaard et~al.(2021)S{\o}gaard, Ebert, Bastings, and
+  Filippova}]{sogaard-etal-2021-need}
+Anders S{\o}gaard, Sebastian Ebert, Jasmijn Bastings, and Katja Filippova.
+  2021.
+\newblock \href {https://doi.org/10.18653/v1/2021.eacl-main.156} {We need to
+  talk about random splits}.
+\newblock In \emph{Proceedings of the 16th Conference of the European Chapter
+  of the Association for Computational Linguistics: Main Volume}, pages
+  1823--1832, Online. Association for Computational Linguistics.
+
+\bibitem[{Vylomova et~al.(2020)Vylomova, White, Salesky, Mielke, Wu, Ponti,
+  Maudslay, Zmigrod, Valvoda, Toldova, Tyers, Klyachko, Yegorov, Krizhanovsky,
+  Czarnowska, Nikkarinen, Krizhanovsky, Pimentel, Torroba~Hennigen, Kirov,
+  Nicolai, Williams, Anastasopoulos, Cruz, Chodroff, Cotterell, Silfverberg,
+  and Hulden}]{vylomova-etal-2020-sigmorphon}
+Ekaterina Vylomova, Jennifer White, Elizabeth Salesky, Sabrina~J. Mielke,
+  Shijie Wu, Edoardo~Maria Ponti, Rowan~Hall Maudslay, Ran Zmigrod, Josef
+  Valvoda, Svetlana Toldova, Francis Tyers, Elena Klyachko, Ilya Yegorov,
+  Natalia Krizhanovsky, Paula Czarnowska, Irene Nikkarinen, Andrew
+  Krizhanovsky, Tiago Pimentel, Lucas Torroba~Hennigen, Christo Kirov, Garrett
+  Nicolai, Adina Williams, Antonios Anastasopoulos, Hilaria Cruz, Eleanor
+  Chodroff, Ryan Cotterell, Miikka Silfverberg, and Mans Hulden. 2020.
+\newblock \href {https://doi.org/10.18653/v1/2020.sigmorphon-1.1} {{SIGMORPHON}
+  2020 shared task 0: Typologically diverse morphological inflection}.
+\newblock In \emph{Proceedings of the 17th SIGMORPHON Workshop on Computational
+  Research in Phonetics, Phonology, and Morphology}, pages 1--39, Online.
+  Association for Computational Linguistics.
+
+\bibitem[{Wu et~al.(2021)Wu, Cotterell, and Hulden}]{wu-etal-2021-applying}
+Shijie Wu, Ryan Cotterell, and Mans Hulden. 2021.
+\newblock \href {https://doi.org/10.18653/v1/2021.eacl-main.163} {Applying the
+  transformer to character-level transduction}.
+\newblock In \emph{Proceedings of the 16th Conference of the European Chapter
+  of the Association for Computational Linguistics: Main Volume}, pages
+  1901--1907, Online. Association for Computational Linguistics.
+
+\end{thebibliography}

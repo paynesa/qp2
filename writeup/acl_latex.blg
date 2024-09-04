@@ -1,0 +1,59 @@
+This is BibTeX, Version 0.99d (TeX Live 2024)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: acl_latex.aux
+The style file: acl_natbib.bst
+Reallocated glb_str_ptr (elt_size=4) to 20 items from 10.
+Reallocated global_strs (elt_size=200001) to 20 items from 10.
+Reallocated glb_str_end (elt_size=4) to 20 items from 10.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
+Database file #1: anthology.bib
+Reallocated str_pool (elt_size=1) to 130000 items from 65000.
+Reallocated str_pool (elt_size=1) to 195000 items from 130000.
+Reallocated str_pool (elt_size=1) to 260000 items from 195000.
+Reallocated str_pool (elt_size=1) to 325000 items from 260000.
+Database file #2: custom.bib
+Warning--can't use both volume and number fields in kodner2023re
+You've used 32 entries,
+            3734 wiz_defined-function locations,
+            6427 strings with 308925 characters,
+and the built_in function-call counts, 43352 in all, are:
+= -- 3302
+> -- 3197
+< -- 42
++ -- 1177
+- -- 1138
+* -- 3535
+:= -- 6431
+add.period$ -- 157
+call.type$ -- 32
+change.case$ -- 601
+chr.to.int$ -- 36
+cite$ -- 33
+duplicate$ -- 2392
+empty$ -- 2461
+format.name$ -- 1249
+if$ -- 8963
+int.to.chr$ -- 3
+int.to.str$ -- 1
+missing$ -- 636
+newline$ -- 164
+num.names$ -- 128
+pop$ -- 1364
+preamble$ -- 1
+purify$ -- 507
+quote$ -- 0
+skip$ -- 1772
+stack$ -- 0
+substring$ -- 1352
+swap$ -- 1670
+text.length$ -- 58
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 288
+warning$ -- 1
+while$ -- 184
+width$ -- 0
+write$ -- 477
+(There was 1 warning)
