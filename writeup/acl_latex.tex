@@ -269,6 +269,64 @@ an ACL bibliography style (\texttt{acl\_natbib.bst}),
 an example bibliography (\texttt{custom.bib}),
 and the bibliography for the ACL Anthology (\texttt{anthology.bib}).
 
+
+\newpage
+\section{Preliminaries}
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{figs/feats_attested.png}
+\caption{The proportion of feature sets appearing in test that have been seen in train+dev, as a function of training data size.}
+\label{feats_attested}
+\end{figure}
+
+Under \citeauthor{goldman-etal-2022-un}'s lemma-based splitting, we would expect that feature overlap should always be 100\%. 
+Since \textit{entire paradigms} are placed either in test or train, as long as there is another lemma of the same part of speech in the training data, then since the training lemma appears in its full paradigm, it should be the case that we have already seen all of the test features. 
+For example, if \todo{add example}.
+There are, of course, a few caveats to this point. 
+Firstly, it assumes that every part of speech that appears in test will also appear in train. However, this assumption is entirely tenable given a moderate data sample, and \todo{check to see if it's the case that there's 100\% POS overlap}. 
+Secondly, it assumes that the lemmas of the same POS in train don't have gaps -- for example, if \textit{stride} is the only verb we've seen in train, we likely won't have seen the past participle in train. 
+However, it seems that this is also a tenable assumption given a moderate data sample. 
+
+Indeed, when we examine the feature overlap in the data used by \citet{goldman-etal-2022-un} (Figure \ref{feats_attested}), we find that the feature overlap for most languages is 100\%. 
+Indeed, there is little relationship between featureset overlap and training size (Pearson's $r = 0.068~(p=0.52)$, Spearman's $\rho = -0.254~(p=0.015)$, Kendall's $\tau_B = -0.207~(p = 0.014)$).
+However, it is clearly not the case for all languages: the most dramatic outlier, Ludic, for example, has a feature overlap of just 0.303, meaning that less than a third of the feature sets appearing in the test data are attested in the train+dev. 
+Preliminary examination of the Ludic data finds that this low overlap is due to just \textit{three} of the 26 total lemmas appearing in the test data. 
+One of these lemmas, \textit{astuda}, appears with a whopping 131 feature sets in the testing data. 
+We can ask whether it's reasonable to expect the model to be able to generate all 131 of these feature pairings by comparing the size of this test paradigm to comparable paradigms in train. 
+In this case, \textit{astuda} is a verb, and the average size of a verbal paradigm in the Ludic training data is just 1.632 featuresets (stdev = 0.985). 
+The largest verbal paradigm in the Ludic training data contains just 5 feature sets. 
+
+It seems, then, that cases where \citeauthor{goldman-etal-2022-un}'s sampling strategy does not yield 100\% feature set overlap emerge as a result of data issues. 
+\todo{A word about Ludic and the generation}
+Though Ludic is by far the most glaring example, this pattern extends to other languages for which overlap is less than 100\%. 
+To quantify this, we measure the difference in paradigm size between the \texttt{problematic lemmas} --- those appearing with at least one unattested featureset in test --- and the average paradigm size of words with the same part of speech in the training data.
+We scale this value by the average paradigm size of words of the given part of speech in the training data so this number can be thought of as a \textit{proportional increase} in paradigm size.  
+In other words, we measure: \todo{Just say this is measuring percent increase} 
+
+\begin{footnotesize}
+$$\frac{\texttt{avg. problematic lemma size - avg. train size}}{\texttt{avg. train size}}$$
+\end{footnotesize}
+
+For each part of speech for which there is at least one problematic lemma in the languages with overlap of under 100\%. 
+Indeed, we find that the mean proportional difference is 4.825\% (stdev 8.948), with a large standard deviation stemming from a  number of large positive outliers. 
+To give a point of comparison, we also measure the percent increase from the average training paradigm size to the \textit{maximum} test paradigm size across all POS for all languages for which there is 100\% overlap. 
+Here, the percent increase is only 0.119\% (stdev 0.332); indeed, an unpaired T-test finds a significant difference between these two measures of increase ($t=5.801 (p=3.7*10^{-8})$).
+The difference in these distributions is visualized in \todo{}
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{figs/percent_increase.png}
+\caption{The proportion of feature sets appearing in test that have been seen in train+dev, as a function of training data size.}
+\label{feats_attested}
+\end{figure}
+
+\newpage
+
+
+
+
+
+
 % Bibliography entries for the entire Anthology, followed by custom entries
 \bibliography{anthology,custom}
 % Custom bibliography entries only
