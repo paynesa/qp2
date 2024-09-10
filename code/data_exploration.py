@@ -108,4 +108,15 @@ def investigate_feature_overlap(path, verbose = True):
         if verbose:
             print("\n")    
 
-    return results    
+    return results  
+
+def overlap_less(second, ovlp):
+    """Filter two lists to just the positions where overlap is less than 100"""
+    ovlp_new = []
+    second_new = []
+    for o, s in zip(ovlp, second):
+        if o < 1:
+            ovlp_new.append(o)
+            second_new.append(s) 
+    return second_new, ovlp_new
+
