@@ -2,7 +2,14 @@
 
 code/LemmaSplitting
 writeup/anthology.bib
-
 code/.ipynb_checkpoints/
 writeup/acl_latex.synctex.gz
 writeup/.DS_Store
+code/SIGMORPHON2020
+writeup/acl_latex.aux
+writeup/acl_latex.blg
+writeup/acl_latex.fdb_latexmk
+writeup/acl_latex.fls
+writeup/acl_latex.log
+writeup/acl_latex.out
+

@@ -7,11 +7,14 @@
 % Change "review" to "final" to generate the final (sometimes called camera-ready) version.
 % Change to "preprint" to generate a non-anonymous version with page numbers.
 %\usepackage[review]{acl}
+\usepackage{gb4e}
+\noautomath
 \usepackage{acl}
 
 % Standard package includes
 \usepackage{times}
 \usepackage{latexsym}
+
 
 % For proper rendering and hyphenation of words containing Latin characters (including in bib files)
 \usepackage[T1]{fontenc}
@@ -43,8 +46,15 @@
 % and set <dim> to something 5cm or larger.
 
 \newcommand{\todo}[1]{\textcolor{red}{(\textbf{TODO:} #1)}}
+\newcommand{\goldmant}{\citet{goldman-etal-2022-un}}
+\newcommand{\goldmana}{\citeauthor{goldman-etal-2022-un}}
+\newcommand{\goldmanp}{\citep{goldman-etal-2022-un}}
 
-\title{QP2 Informal Proposal}
+\newcommand{\kodnert}{\citet{kodner-etal-2022-sigmorphon}}
+\newcommand{\kodnera}{\citeauthor{kodner-etal-2022-sigmorphon}}
+\newcommand{\kodnerp}{\citep{kodner-etal-2022-sigmorphon}}
+
+\title{Evaluating Evaluation: Comparing Adversarial Approaches to Evaluating Neural Models of Morphological Inflection}
 
 % Author information can be set in various styles:
 % For several authors from the same institution:
@@ -62,7 +72,7 @@
 %         Author 2 \\ Address line \\ ... \\ Address line \And
 %         Author 3 \\ Address line \\ ... \\ Address line}
 
-\author{Sarah Payne \\
+\author{Sarah Payne, QP2 Proposal\\
   Stony Brook University \\
   \texttt{sarah.payne@stonybrook.edu} }
 
@@ -107,28 +117,22 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-Morphological inflection is a fundamental task in subword NLP, popularized by the recent SIGMORPHON shared tasks; it has both practical and cognitive implications. 
-State-of-the-art inflection systems have reported extremely high average accuracy across languages, even with relatively little data. 
-However, average accuracy on inflection tasks is also highly variable, 
+Morphological inflection is a fundamental task in subword NLP, popularized by the recent SIGMORPHON shared tasks. 
+For several years now, state-of-the-art neural models have reported extremely high average accuracy across languages on these tasks. 
+This apparent saturation has led to the development of a range of adversarial evaluation practices, based on the common insight that traditional train-test splits don't control for whether the model has seen either the \textit{lemma} or \textit{feature set} separately in its training data. 
+These evaluation practices, however, differ drastically in their results: while \goldmant~ reports that models fail to generalize to unseen \textit{lemmas}, \kodnert~ find that the models have little trouble generalizing to unseen lemmas, but take a large performance hit when generalizing to unseen \textit{feature sets}. 
+In this Qualifying Paper, I will \todo{}
 
 
 
 \end{abstract}
 
+\section{Introduction}
 
+\todo{Write the Introduction \& maybe a related work section}
 
-\section{Inflection as an NLP Task}
-In the inflection task, the input is a lemma and a feature- bundle, and we aim to predict the respective inflected word-form.
+So far, the best-performing models have been neural sequence-to-sequence models \citep{kann-schutze-2016-med, canby-etal-2020-university}
 
-The training input in SIGMORPHON’s shared-tasks is a random split of the available (lemma,form,features) triplets such that no triplet occurring in the train-set occurs in the test-set
-
-\citet{goldman-etal-2022-un} In such a setting, models can short-cut their way to better predictions in cases where forms from the same lemma appear in both the train and test data. This may allow models to memorize lemma- specific alternations that make morphological in- flection a challenging task to begin with. 
-
-
-
-\todo{More thoroughly define the task here}
-
-\section{Adversarial Evaluation}
 Many subfields of NLP and machine learning in general suggested hard splits as means to improve the probing of models’ ability to solve the under- lying task, and to make sure models do not simply employ loopholes in the data.
 The addition of unanswerable questions to question answering benchmarks \citep{rajpurkar-etal-2018-know}, or the addition of expert-annotated minimal pairs \citep{gardner-etal-2020-evaluating}. 
 \citet{narayan-etal-2017-split} suggested using the \textsc{Websplit} data, where models are required to split and rephrase complex sentences associated with a meaning representation over a knowledge-base. 
@@ -141,30 +145,95 @@ Furthermore, \citet{loula-etal-2018-rearranging} adversarially split semantic pa
 In general, concerns regarding data splits and their undesired influence on model assessments led \citet{gorman-bedrick-2019-need} to advocate random splitting instead of standard ones.
 A common modification is re-splitting the data such that the test set is more challenging and closer to the intended use of the models in the wild \citep{sogaard-etal-2021-need}. As the performance on morphological inflection models seems to have saturated on high scores, a similar rethinking of the data used is warranted.
 
+\newpage
+\section{Defining the Task}
+\subsection{Morphological Inflection as an NLP Task}
+
+In standard morphological inflection tasks, models are exposed to triples of \texttt{(lemma, feature set, inflected form)} during training.
+During evaluation, the model is given a \texttt{(lemma, feature set)} pair as input and the goal is to correctly predict the corresponding inflected form.
+For example,  were the model to be given as input (\texttt{walk}, \textsc{V;Past}), then we would expect it to output \texttt{walked}. 
+
+\subsection{The Role of Overlap}
+In most versions of the SIGMORPHON shared task \citep{cotterell-etal-2016-sigmorphon, cotterell-etal-2017-conll, cotterell-etal-2018-conll, mccarthy-etal-2019-sigmorphon, vylomova-etal-2020-sigmorphon, pimentel-ryskina-etal-2021-sigmorphon, goldman-etal-2023-sigmorphon}, train-test splits are created by randomly sampling from the available \texttt{(lemma, feature set, inflected form)} triples. 
+While this approach entails that no triple occurring in the train set will occur in the evaluation set, as  both \goldmant~ and \kodnert~ note, it ignores the fact that lemmas or feature sets that appear during train may reappear during test, since lemmas and feature sets can be combined independently. 
+
+To illustrate this point, consider the toy example below, taken from \citet{kodner-etal-2023-morphological}. 
+Though none of the triples appearing in the train set (\ref{example-train}) re-appear in the evaluation set (\ref{example-test}), the lemmas and feature sets seen in train \textit{do} reappear individually in the evaluation set. 
+For example, in \texttt{e0}, both the lemma and the feature set are attested separately in the training data: the lemma is attested in \texttt{t0} and the feature set is attested in \texttt{t1}. 
+By contrast, in \texttt{e3}, neither the lemma nor the feature set are attested in the training data. 
+Though neither \texttt{e0} nor \texttt{e3} are attested \textit{as entire triples} in the training data, one might expect that it would be easier for a model trained on (\ref{example-train}) to generate the correct result for \texttt{e0} than for \texttt{e3}. 
+
+
+
+\begin{exe}
+\ex\label{example-train} Example training set: \\
+\begin{small}
+\begin{tabular}{llll}
+\texttt{t0:} & \texttt{see} & \texttt{seeing} & \textsc{V;V.Ptcp;Prs}\\
+\texttt{t1:} & \texttt{sit} & \texttt{sat} & \textsc{V;Pst}\\
+\end{tabular}
+\end{small}
+\ex\label{example-test} Example evaluation set:\\
+\begin{small}
+\begin{tabular}{lll}
+\texttt{e0:} & \texttt{see} &  \textsc{V;Pst}\\
+\texttt{e1:} & \texttt{sit} & \textsc{V;Nfin}\\
+\texttt{e2:} & \texttt{eat} & \textsc{V;Pst}\\
+\texttt{e3:} & \texttt{run} & \textsc{V;Prs;3;Sg}\\
+\end{tabular}
+\end{small}
+\end{exe}
+
+Indeed, this is the insight behind both \goldmant~ and \kodnert:  test pairs with novel lemmas or novel feature sets require a system to generalize along different morphological dimensions, and evaluation measures  should control for this overlap so as to better measure models' ability to generalize along these dimensions. 
+To formalize these dimensions, \kodnert~ define four types of overlap, which we repeat here: 
+\begin{itemize}
+\item \textbf{\texttt{both} Overlap}: both the lemma and feature set of an evaluation pair are attested in train, though not together in the same triple (\texttt{e0} in example \ref{example-test})
+\item \textbf{\texttt{lemmaOnly} Overlap}: only the lemma is attested in training, and the feature set is novel (\texttt{e1} in example \ref{example-test})
+\item \textbf{\texttt{featsOnly} Overlap}: only the feature set is attested in training, and the lemma is novel (\texttt{e2} in example \ref{example-test})
+\item \textbf{\texttt{neither} Overlap}: neither the lemma nor the feature set is attested in train (\texttt{e3} in example \ref{example-test})
+\end{itemize} 
+
+We additionally define \textbf{\texttt{featsAttested}} to be any evaluation triple for which the feature set is attested in train (i.e., \texttt{featsAttested} = \texttt{both} $\cup$ \texttt{featsOnly}) and \textbf{\texttt{featsNovel}} to be any evaluation triple for which the features are unattested in train (i.e. \texttt{featsNovel} = \texttt{lemmaOnly} $\cup$ \texttt{neither}). 
+\textbf{\texttt{lemmaAttested}} and \textbf{\texttt{lemmaNovel}} are defined analogously. 
+
+
 
 \section{Previous Work}
 
+While most previous work on morphological inflection has made use of random train-test splits which do not control for overlap, two lines of work have examined different aspects of overlap. 
+\citet[864]{goldman-etal-2022-un} focused on lemma overlap, arguing that models can short-cut their way to better predictions in cases where forms from the same lemma appear in both the train and test data" since the model may  be able to memorize lemma-specific irregularities.
 
-\subsection{Goldman et al}
+Specifically, \goldmana~ propose an evaluation strategy in which train-test splits are formed by splitting by \textit{lemma} rather than by triple. 
+As such, for any  lemma $\mathcal{L}$ in the data, all triples of the form \texttt{($\mathcal{L}$, feature set, inflected form)} are placed into the same set (either train or test); the \textit{entire paradigm} for that lemma will occur in one set. 
+In terms of the overlap types defined above, \textit{every} triple in test will thus be \texttt{lemmaNovel}: either \texttt{featsOnly} or \texttt{neither}. 
 
-\citet{goldman-etal-2022-un} propose a re-evaluation of morphological inflection models in which train-test splits are formed by splitting by \textit{lemma} rather than by inflected form. 
-When they evaluate the top 3 systems on SIGMORPHON's 2020 shared task, they find that the lemma-split leads to an average drop in accuracy by about 30 percentage points, with the effect being the most significant for low-resourced languages with a drop as high as 95 points. 
-Even high-resourced languages, however, lose about 10 percentage points on average. 
-\citeauthor{goldman-etal-2022-un} argue that their results clearly show that generalizing inflection to unseen lemmas is far from being solved. 
-
-
-So far, the best-performing models have been neural sequence-to-sequence models \citep{kann-schutze-2016-med, canby-etal-2020-university}
-
-There is a view that morphological inflection is a relatively simple task that is essentially already solved, as reflected in the saturation of the results over the years and declining submissions to the shared tasks. 
-However, is it really solved or can the good performance be attributed to some artifacts in the data? 
-
-
-
-
-In this work we propose to construct more difficult datasets for morphological inflection by splitting them such that the test set includes no forms of lemmas appearing in the train set. 
 
 When re-splitting, we kept the same proportions of the form-split data, we split the inflection tables: 70\%, 10\%, 20\% for the train, dev, and test sets. 
 In terms of examples the proportions may vary as not all tables are of equal size. In prac- tice, the averaged train set size in examples terms was only 3.5\% smaller in the lemma-split data, on average.
+\todo{look at how much of a difference there was here}
+
+
+\goldmana~ re-split the data from the 2020 SIGMORPHON shared task using their proposed method and compare model performance  on the original splits to performance on the lemma-based splits. 
+When re-splitting, the same train-dev-test ratio as the original data was maintained 
+
+we split the inflection tables: 70\%, 10\%, 20\% for the train, dev, and test sets. 
+In terms of examples the proportions may vary as not all tables are of equal size. In prac- tice, the averaged train set size in examples terms was only 3.5\% smaller in the lemma-split data, on average.
+
+
+They report an average drop in accuracy of about 30 percentage points from the original SIGMORPHON splits to their lemma-based splits, with the effect being the most significant for low-resourced languages; for one such language, they report a drop of 95\%. 
+
+
+
+When they evaluate the top 3 systems on SIGMORPHON's 2020 shared tas
+
+Even high-resourced languages, however, lose about 10 percentage points on average. 
+
+
+\citeauthor{goldman-etal-2022-un} argue that their results clearly show that generalizing inflection to unseen lemmas is far from being solved. 
+
+
+
+
 
 Used all 90 languages in the SIGMORPHON 2020 shared task. 
 
