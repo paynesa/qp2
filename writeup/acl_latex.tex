@@ -131,6 +131,9 @@ In this Qualifying Paper, I will \todo{}
 
 \todo{Write the Introduction \& maybe a related work section}
 
+Generalization, the ability to extend patterns from known to unknown items, is a critical part of mor- phological competence. 
+Morphological sparsity \todo{talk about sparsity and acquisition}
+
 So far, the best-performing models have been neural sequence-to-sequence models \citep{kann-schutze-2016-med, canby-etal-2020-university}
 
 Many subfields of NLP and machine learning in general suggested hard splits as means to improve the probing of models’ ability to solve the under- lying task, and to make sure models do not simply employ loopholes in the data.
@@ -144,6 +147,10 @@ Furthermore, \citet{loula-etal-2018-rearranging} adversarially split semantic pa
 
 In general, concerns regarding data splits and their undesired influence on model assessments led \citet{gorman-bedrick-2019-need} to advocate random splitting instead of standard ones.
 A common modification is re-splitting the data such that the test set is more challenging and closer to the intended use of the models in the wild \citep{sogaard-etal-2021-need}. As the performance on morphological inflection models seems to have saturated on high scores, a similar rethinking of the data used is warranted.
+
+\textbf{Motivation for the generalization task:} 
+
+\citet{pimentel-ryskina-etal-2021-sigmorphon} looked at lemma overlap as well but didn't control for featureset overlap 
 
 \newpage
 \section{Defining the Task}
@@ -208,23 +215,42 @@ As such, for any  lemma $\mathcal{L}$ in the data, all triples of the form \text
 In terms of the overlap types defined above, \textit{every} triple in test will thus be \texttt{lemmaNovel}: either \texttt{featsOnly} or \texttt{neither}. 
 
 
-When re-splitting, we kept the same proportions of the form-split data, we split the inflection tables: 70\%, 10\%, 20\% for the train, dev, and test sets. 
-In terms of examples the proportions may vary as not all tables are of equal size. In prac- tice, the averaged train set size in examples terms was only 3.5\% smaller in the lemma-split data, on average.
-\todo{look at how much of a difference there was here}
-
-
 \goldmana~ re-split the data from the 2020 SIGMORPHON shared task using their proposed method and compare model performance  on the original splits to performance on the lemma-based splits. 
-When re-splitting, the same train-dev-test ratio as the original data was maintained 
+They report an average drop in accuracy of about 30 percentage points from the original SIGMORPHON splits to their lemma-based splits, with the effect being the most significant for low-resourced languages. 
+For example, while Germanic languages had an average drop of 23\%, while Niger-Congo languages had an average drop of 39\%. 
+The worst drop in performance was approximately 95\%. 
+\goldmana~ conclude that models struggle to generalize to unseen lemmas. 
 
-we split the inflection tables: 70\%, 10\%, 20\% for the train, dev, and test sets. 
-In terms of examples the proportions may vary as not all tables are of equal size. In prac- tice, the averaged train set size in examples terms was only 3.5\% smaller in the lemma-split data, on average.
+In contrast to \goldmant~, \kodnert~ report no loss in performance on unseen lemmas, but report a serious drop in performance on unseen feature sets in their analysis of the 6 systems submitted to SIGMORPHON 2022.
+Surprisingly, \kodnera~ report that all of the submitted systems actually performed \textit{better} on \texttt{neither} overlap items than on \texttt{lemmaOnly} overlap items. 
+
+\kodnera~ evaluate test items with both unseen lemmas (\texttt{lemmaNovel}) and unseen feature sets (\texttt{featsNovel}) and compare these to items \todo{}
+All systems perform better on items with attested fea- ture sets, but the gap in performance varies greatly from UBC’s 32 points in the small training condition to OSU’s 79 points in the large training condition.
+
+The algorithm began by randomly partitioning a language’s feature sets into OVERLAPPABLE and NON-OVERLAPPABLE sets and uniformly sampling the large training set from only those triples that contain feature sets in OVERLAPPABLE. If there were not enough triples with with feature sets in OVERLAPPABLE for a given language, then the OVERLAPPABLE partition was increased incremen- tally until enough training triples could be sampled. If there was insufficient data to create the large training set, then the small training set was sam- pled this way instead. If there was enough data, then the small training set was down-sampled uni- formly from the large training set.
+The test set was sampled from the remaining items, with half drawn from triples with feature sets in OVERLAPPABLE and half from triples with feature sets in NON-OVERLAPPABLE features. The development set was drawn from the remainder in the same fashion.
 
 
-They report an average drop in accuracy of about 30 percentage points from the original SIGMORPHON splits to their lemma-based splits, with the effect being the most significant for low-resourced languages; for one such language, they report a drop of 95\%. 
+In preparation for this year’s iteration, we found that the proportion of test items with seen feature sets varied greatly across languages in the 2018 task and may have been a major driver of performance. 
+Indeed, ceiling effect for feature sets but not for lemma overlap 
 
 
 
-When they evaluate the top 3 systems on SIGMORPHON's 2020 shared tas
+
+Across the six submitted systems and two baselines, the prediction of inflections with unseen features proved challenging. 
+This was true even for languages for which the forms were in principle predictable, which suggests that further work is needed in designing systems tat capture the various types of generalization needed for the worlds languages. 
+t provides a clear result: the gap be- tween performance on test items attested and novel features does not generally improve even for these languages where it should, if the unfairness of the task were driving decreased performance on fu- sional languages. This shows that generalization to novel feature sets, that is, to previously unat- tested inflectional categories, remains a legitimate concern for nearly all the systems.
+
+
+\section{Misc}
+
+
+
+
+
+When they evaluate the top 3 systems on SIGMORPHON's 2020 shared task
+
+All systems see a drop in performance, with average around 30 points and the lowest being 14 points for DeepSpin-02, which fares better for low-resource languages. \todo{do this calculation}. 
 
 Even high-resourced languages, however, lose about 10 percentage points on average. 
 
@@ -245,44 +271,10 @@ The models used include:
 \item \textbf{CULing}: another transformer, but with restructuring so that the model learns to inflect from any given cell in the inflection table rather than solely from the lemma. \citep{liu-hulden-2020-leveraging}
 \end{itemize}
 
-All systems see a drop in performance, with average around 30 points and the lowest being 14 points for DeepSpin-02, which fares better for low-resource languages. \todo{do this calculation}. 
-The average performance per language family seems to be controlled by training data availability. For example, Germanic languages show average drop of 23 points, while for Niger-Congo languages the drop is 39 points on average.
-The major drops in performance that contributed the most to the overall gap between the splits are in those low-resourced language. Re- markably, for some systems and languages the drop can be as high as 95 points.
-On the other hand, on high-resourced languages with 40,000 training ex- amples or more, all systems didn’t lose much. here is no evidence for specific families being eas-
-  867
-ier for inflection when little data is provided
+
 
 \section{Kodner et al}
 
-
-
-\citet{kodner-etal-2022-sigmorphon} emphasize generalization along diferent dimenstions by evaluating test items with unseen lemmas and unseen features separately under small and large training conditions. 
-Across the six submitted systems and two baselines, the prediction of inflections with unseen features proved challenging. 
-This was true even for languages for which the forms were in principle predictable, which suggests that further work is needed in designing systems tat capture the various types of generalization needed for the worlds languages. 
-
-
-Generalization, the ability to extend patterns from known to unknown items, is a critical part of mor- phological competence. 
-Morphological sparsity 
-
-In principle, there are at least two kinds of gener- alization which can be evaluated in our UniMorph- based test paradigm: generalization to unseen lem- mas, and generalization to unseen inflectional cate- gories (i.e., unseen feature sets). Contrasting seen and unseen lemmas and categories yields four dif- ferent test conditions: 1) prediction of the form of a novel combination of a seen lemma and seen fea- ture set, 2) prediction given a seen lemma but novel feature set, 3) prediction given a seen feature set but novel lemma, and 4) the prediction of a form when both the lemma and feature set are novel.
-
-\textbf{Motivation for the generalization task:} 
-
-\citet{pimentel-ryskina-etal-2021-sigmorphon} looked at lemma overlap as well but didn't control for featureset overlap 
-
-In preparation for this year’s iteration, we found that the proportion of test items with seen feature sets varied greatly across languages in the 2018 task and may have been a major driver of performance. 
-
-Indeed, ceiling effect for feature sets but not for lemma overlap 
-
-
-As expected, neither overlap items proved challenging, since systems had to infer the forms for simultaneously novel lemmas and novel feature sets. Surprisingly, all systems performed better on neither overlap items than lemma overlap items. It is not clear why this would be, since it is observed on average for many but not all of the tested systems. It may be an artifact of the data splitting algorithm favoring balancing feature over- lap over lemma overlap. However, the results are consistent with the observation over the 2018 data that systems struggle generalizing across feature sets more so than generalizing over lemmas.
-
-
-All systems perform better on items with attested fea- ture sets, but the gap in performance varies greatly from UBC’s 32 points in the small training condition to OSU’s 79 points in the large training condition.
-
-Every system actually performs worse on the at- tested lemma items than the novel lemma items.
-
-t provides a clear result: the gap be- tween performance on test items attested and novel features does not generally improve even for these languages where it should, if the unfairness of the task were driving decreased performance on fu- sional languages. This shows that generalization to novel feature sets, that is, to previously unat- tested inflectional categories, remains a legitimate concern for nearly all the systems.
 
 \subsection{Kodner Khalifa Payne Liu}
 
@@ -382,12 +374,20 @@ To give a point of comparison, we also measure the percent increase from the ave
 Here, the percent increase is only 0.119\% (stdev 0.332); indeed, an unpaired T-test finds a significant difference between these two measures of increase ($t=5.801 (p=3.7*10^{-8})$).
 The difference in these distributions is visualized in \todo{}
 
+
+
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth]{figs/percent_increase.png}
 \caption{The proportion of feature sets appearing in test that have been seen in train+dev, as a function of training data size.}
 \label{feats_attested}
 \end{figure}
+
+When re-splitting, we kept the same proportions of the form-split data, we split the inflection tables: 70\%, 10\%, 20\% for the train, dev, and test sets. 
+In terms of examples the proportions may vary as not all tables are of equal size. In prac- tice, the averaged train set size in examples terms was only 3.5\% smaller in the lemma-split data, on average.
+\todo{look at how much of a difference there was here}
+we split the inflection tables: 70\%, 10\%, 20\% for the train, dev, and test sets. 
+In terms of examples the proportions may vary as not all tables are of equal size. In prac- tice, the averaged train set size in examples terms was only 3.5\% smaller in the lemma-split data, on average.
 
 \newpage
 
