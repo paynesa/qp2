@@ -332,62 +332,148 @@ and the bibliography for the ACL Anthology (\texttt{anthology.bib}).
 
 
 \newpage
-\section{Preliminaries}
-\begin{figure}
+\section{Sources of Difference}
+
+
+
+
+\subsection{Training Data Size}
+
+\begin{figure*}[h!]
 \centering
-\includegraphics[width=\linewidth]{figs/feats_attested.png}
-\caption{The proportion of feature sets appearing in test that have been seen in train+dev, as a function of training data size.}
-\label{feats_attested}
-\end{figure}
+\includegraphics[width=0.8\linewidth]{figs/training_size.png}
+\caption{\todo{write the caption}}
+\label{fig:training_size}
+\end{figure*}
+\subsection{SIGMORPHON Year }
 
-Under \citeauthor{goldman-etal-2022-un}'s lemma-based splitting, we would expect that feature overlap should always be 100\%. 
-Since \textit{entire paradigms} are placed either in test or train, as long as there is another lemma of the same part of speech in the training data, then since the training lemma appears in its full paradigm, it should be the case that we have already seen all of the test features. 
-For example, if \todo{add example}.
-There are, of course, a few caveats to this point. 
-Firstly, it assumes that every part of speech that appears in test will also appear in train. However, this assumption is entirely tenable given a moderate data sample, and \todo{check to see if it's the case that there's 100\% POS overlap}. 
-Secondly, it assumes that the lemmas of the same POS in train don't have gaps -- for example, if \textit{stride} is the only verb we've seen in train, we likely won't have seen the past participle in train. 
-However, it seems that this is also a tenable assumption given a moderate data sample. 
+While \goldmana's data came from the 2020 SIGMORPHON shared task, \kodnera's came from the 2022 SIGMORPHON shared task. 
+While SIGMORPHON 2020 contained 90 languages and SIGMORPHON 2022 contained 33, only \textit{seven} languages were shared between these years.
+What's more, there is a notable difference in training size between the 2020 and 2022 versions of the shared task: while \kodnera~ capped their large training sets at 7,000 triples (smaller training sizes were used when fewer triples were available), \goldmana~ made use of the entirety of the available data, resulting in much larger training sizes on average.
+Indeed, while the mean training size for \goldmana~ was 
+\todo{sigmorphon, not goldman}
+Mean train size in 2022: 4452.939 (stdev: 3162.846837508738)
+Mean train size in 2020: 17488.933 (stdev: 26035.04482628495)
 
-Indeed, when we examine the feature overlap in the data used by \citet{goldman-etal-2022-un} (Figure \ref{feats_attested}), we find that the feature overlap for most languages is 100\%. 
-Indeed, there is little relationship between featureset overlap and training size (Pearson's $r = 0.068~(p=0.52)$, Spearman's $\rho = -0.254~(p=0.015)$, Kendall's $\tau_B = -0.207~(p = 0.014)$).
-However, it is clearly not the case for all languages: the most dramatic outlier, Ludic, for example, has a feature overlap of just 0.303, meaning that less than a third of the feature sets appearing in the test data are attested in the train+dev. 
-Preliminary examination of the Ludic data finds that this low overlap is due to just \textit{three} of the 26 total lemmas appearing in the test data. 
-One of these lemmas, \textit{astuda}, appears with a whopping 131 feature sets in the testing data. 
-We can ask whether it's reasonable to expect the model to be able to generate all 131 of these feature pairings by comparing the size of this test paradigm to comparable paradigms in train. 
-In this case, \textit{astuda} is a verb, and the average size of a verbal paradigm in the Ludic training data is just 1.632 featuresets (stdev = 0.985). 
-The largest verbal paradigm in the Ludic training data contains just 5 feature sets. 
-
-It seems, then, that cases where \citeauthor{goldman-etal-2022-un}'s sampling strategy does not yield 100\% feature set overlap emerge as a result of data issues. 
-\todo{A word about Ludic and the generation}
-Though Ludic is by far the most glaring example, this pattern extends to other languages for which overlap is less than 100\%. 
-To quantify this, we measure the difference in paradigm size between the \texttt{problematic lemmas} --- those appearing with at least one unattested featureset in test --- and the average paradigm size of words with the same part of speech in the training data.
-We scale this value by the average paradigm size of words of the given part of speech in the training data so this number can be thought of as a \textit{proportional increase} in paradigm size.  
-In other words, we measure: \todo{Just say this is measuring percent increase} 
-
-\begin{footnotesize}
-$$\frac{\texttt{avg. problematic lemma size - avg. train size}}{\texttt{avg. train size}}$$
-\end{footnotesize}
-
-For each part of speech for which there is at least one problematic lemma in the languages with overlap of under 100\%. 
-Indeed, we find that the mean proportional difference is 4.825\% (stdev 8.948), with a large standard deviation stemming from a  number of large positive outliers. 
-To give a point of comparison, we also measure the percent increase from the average training paradigm size to the \textit{maximum} test paradigm size across all POS for all languages for which there is 100\% overlap. 
-Here, the percent increase is only 0.119\% (stdev 0.332); indeed, an unpaired T-test finds a significant difference between these two measures of increase ($t=5.801 (p=3.7*10^{-8})$).
-The difference in these distributions is visualized in \todo{}
+Due to this large difference in evaluation languages and training sizes, then, the results of \goldmana~ and \kodnera~ cannot be directly compared: \todo{} 
 
 
 
-\begin{figure}
-\centering
-\includegraphics[width=\linewidth]{figs/percent_increase.png}
-\caption{The proportion of feature sets appearing in test that have been seen in train+dev, as a function of training data size.}
-\label{feats_attested}
-\end{figure}
+One notable difference between the SIGMORPHON shared tasks in 2020 and 2022 is with regards to training data size.
+
+\begin{itemize}
+\item Sigmorphon 2022 vs. 2020 training sizes and overlap in languages
+\item The issues with the \goldmana sampling strategy 
+\end{itemize}
+
 
 When re-splitting, we kept the same proportions of the form-split data, we split the inflection tables: 70\%, 10\%, 20\% for the train, dev, and test sets. 
 In terms of examples the proportions may vary as not all tables are of equal size. In prac- tice, the averaged train set size in examples terms was only 3.5\% smaller in the lemma-split data, on average.
 \todo{look at how much of a difference there was here}
 we split the inflection tables: 70\%, 10\%, 20\% for the train, dev, and test sets. 
 In terms of examples the proportions may vary as not all tables are of equal size. In prac- tice, the averaged train set size in examples terms was only 3.5\% smaller in the lemma-split data, on average.
+
+\begin{figure*}[h!]
+\centering
+\includegraphics[width=0.8\linewidth]{figs/training_difference.png}
+\caption{\todo{write the caption}}
+\label{fig:training_difference}
+\end{figure*}
+\subsection{SIGMORPHON Year }
+
+
+\subsection{Relationships Between Lemma \& Feature Set Overlap}
+
+\begin{figure*}[h!]
+\centering
+\includegraphics[width=0.8\linewidth]{figs/feats_attested.png}
+\caption{The proportion of feature sets appearing in test that have been seen in train, as a function of training data size. The relationship is not significant (Pearson's $r = 0.074~(p=p = 0.489)$, Spearman's $\rho = -0.183~(p=0.084)$, Kendall's $\tau_B = -0.155~(p = 0.067)$).}
+\label{fig:feats_attested}
+\end{figure*}
+
+
+One possible explanation for the differing results between \goldmant~ and \kodnert~ is that lemma overlap and feature set overlap are correlated, and thus that the apparent effect of lemma overlap found by \goldmana~ is \textit{actually} a result of feature set overlap.
+However, under  \goldmana's lemma-based splitting, feature set overlap between train and test \textit{should} always be at ceiling: since entire paradigms are placed in either train or test, all feature sets in the test set should already be attested in train. %, so long as there is another lemma of the same part of speech in the train set. 
+For example, if we split the two verbal lemmas \texttt{walk} and \texttt{run} into train (\ref{ex:train_verb}) and test (\ref{ex:test_verb}), respectively, then each verb's entire paradigm is placed in its corresponding set.
+It is straightforward to see that the feature set overlap between (\ref{ex:train_verb}) and  (\ref{ex:test_verb}) is 100\%.
+
+
+\begin{exe}
+\ex\label{ex:train_verb} An example lemma-based train set in the style of \goldmana: \\
+\begin{tabular}{lll}
+\texttt{walk} & \textsc{V;Pst} & \texttt{walked}\\
+\texttt{walk} & \textsc{V;Nfin} & \texttt{walk}\\
+\texttt{walk} & \textsc{V;Prs;3;Sg} & \texttt{walks}\\
+\end{tabular}
+\ex\label{ex:test_verb}An example lemma-based evaluation set in the style of \goldmana: \\
+\begin{tabular}{ll}
+\texttt{run} & \textsc{V;Pst} \\
+\texttt{run} & \textsc{V;Nfin} \\
+\texttt{run} & \textsc{V;Prs;3;Sg}\\
+\end{tabular}
+\end{exe}
+
+There are two possible caveats to this point.
+Firstly, 100\% feature set overlap will only be possible if \textit{every} part of speech that appears in test also appears in train. 
+However, this assumption is entirely tenable given a moderate data sample, and indeed all parts of speech appearing in the \goldmana~ test data also appear in the training data. 
+Even with 100\% part-of-speech overlap, however, there is the possibility of gaps: if \texttt{stride} is the only verbal lemma in our English training data, for example, then the past participle will not be attested in train. 
+Even in cases of gaps, however, it is reasonable to expect feature overlap to remain near-ceiling given moderate data given the \goldmana~ lemma-based splitting strategy. 
+
+Indeed, when we examine the feature set overlap in the data used by \goldmana~ (Figure \ref{fig:feats_attested}), we find that the overlap for most languages is 100\%, and there is little relationship between feature set overlap and training size.
+However, not all languages achieve 100\% feature set overlap:  the most dramatic outlier, Ludic, for example, has a feature overlap of just 0.303, meaning that less than a third of the feature sets appearing in the test set are attested in the train set.
+Preliminary examination of the Ludic data finds that this low overlap is due to just \textit{three} of the 26 total lemmas appearing in the test data. 
+One of these lemmas, \texttt{astuda} ``go", appears with a whopping 131 feature sets. 
+
+We can ask whether it's reasonable to expect a model to generate all 131 of these feature sets by comparing the size of this test paradigm to paradigms of the same part-of-speech in train. 
+In this case, \texttt{astuda}  is a verb, and the average size of a verbal paradigm in the Ludic training data is just 1.562 (stdev: 0.864); even the largest verbal paradigm contains just 16 feature sets. 
+A difference of this magnitude cannot be explained simply as the result of gaps or other naturalistic phenomena. 
+Rather, it seems that cases where \citeauthor{goldman-etal-2022-un}'s sampling strategy does not yield 100\% feature set overlap emerge as a result of data issues. 
+Indeed, the corpus from which the Ludic data was drawn \citep{ludic} contains a large number of incomplete paradigms.
+Given these conditions, it is not surprising  that the lemma-based splitting algorithm used by \goldmana~ will lead to low feature overlap. 
+We investigate such issues with the data below.
+
+\subsection{(Lack of) Data Quality}
+
+\begin{figure*}[h!]
+\centering
+\includegraphics[width=0.8\linewidth]{figs/percent_increase.png}
+\caption{The proportion of feature sets appearing in test that have been seen in train, as a function of training data size. The difference in distributions is significant (unpaired $t = 5.375,~p < 10^{-6}$).}
+\label{fig:feats_attested}
+\end{figure*}
+
+
+Though Ludic is by far the most glaring example, the pattern of large paradigms in test causing low feature overlap  extends to other  languages for which overlap is less than 100\%. 
+To quantify this, we measure the percent increase in paradigm size for  \textbf{problematic lemmas} --- those  those appearing with at least one unattested feature set in test --- compared to the average paradigm size of words with the same part of speech in the training data.
+In other words, we calculate:
+\begin{equation}
+\begin{small}
+\textsc{Diff} = 100* \frac{\texttt{mean}(\textsc{ProbLem}) - \texttt{mean}(\textsc{Train})}{\texttt{mean}(\textsc{Train})}
+\end{small}
+\end{equation} 
+Where \textsc{ProbLem} indicates the paradigm size of the problematic lemmas and \textsc{Train} indicates the paradigm size of the same POS in train. 
+
+Indeed, we find that the mean percent difference in paradigm size between the problematic lemmas and the corresponding train lemmas is a whopping 437.683\% (stdev: 871.027\%), with the large standard deviation resulting from a number of large positive outliers. 
+To give a point of comparison, we also measure the percent increase from the average training paradigm size to the \textit{maximum} test paradigm size across all POS for all languages for which there is 100\% overlap. 
+Here, the mean percent increase is only 11.511\% (stdev: 34.054\%); indeed, an unpaired T-test finds a significant difference between these two measures of increase ($t = 5.375,~p < 10^{-6}$)
+The difference in these distributions is visualized in Figure \ref{fig:feats_attested}.
+
+
+
+
+
+\subsection{Model Types}
+\subsection{Splitting Strategy}
+
+
+
+
+
+
+
+
+
+
+
 
 \newpage
 

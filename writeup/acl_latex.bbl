@@ -1,4 +1,4 @@
-\begin{thebibliography}{32}
+\begin{thebibliography}{33}
 \providecommand{\natexlab}[1]{#1}
 
 \bibitem[{Aharoni and Goldberg(2018)}]{aharoni-goldberg-2018-split}
@@ -389,5 +389,13 @@ Shijie Wu, Ryan Cotterell, and Mans Hulden. 2021.
 \newblock In \emph{Proceedings of the 16th Conference of the European Chapter
   of the Association for Computational Linguistics: Main Volume}, pages
   1901--1907, Online. Association for Computational Linguistics.
+
+\bibitem[{Zaytseva et~al.(2017)Zaytseva, Krizhanovsky, Krizhanovsky, Pellinen,
+  and Rodionova}]{ludic}
+Nina Zaytseva, Andrew Krizhanovsky, Natalia Krizhanovsky, Natalia Pellinen, and
+  Aleksndra Rodionova. 2017.
+\newblock Open corpus of veps and karelian languages (vepkar): preliminary data
+  collection and dictionaries.
+\newblock In \emph{Corpus Linguistics}, volume 2017, pages 172--177.
 
 \end{thebibliography}

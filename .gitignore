@@ -1,11 +1,10 @@
-.DS_Store
+*.DS_Store
 
-code/LemmaSplitting
-writeup/anthology.bib
+code/data
 code/.ipynb_checkpoints/
+
 writeup/acl_latex.synctex.gz
 writeup/.DS_Store
-code/SIGMORPHON2020
 writeup/acl_latex.aux
 writeup/acl_latex.blg
 writeup/acl_latex.fdb_latexmk
