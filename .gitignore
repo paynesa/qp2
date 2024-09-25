@@ -2,6 +2,7 @@
 
 code/data
 code/.ipynb_checkpoints/
+code/.R*
 
 writeup/acl_latex.synctex.gz
 writeup/.DS_Store
