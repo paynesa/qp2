@@ -14,6 +14,14 @@ def feature_overlap(path):
     proportion_seen = len([f for f in test_feats if f in seen_feats])/len(test_feats)
     return proportion_seen 
 
+def lemma_overlap(path):
+    """Calculate the percent of lemmas that were seen during training"""
+    train_lemmas, dev_lemmas, test_lemmas = parse_files(path, 0)
+    seen_lemmas = set(train_lemmas + dev_lemmas)
+    proportion_seen = len([f for f in test_lemmas if f in seen_lemmas])/len(test_lemmas)
+    return proportion_seen
+    
+
 def unique_lemmas(path):
     """Return the number of unique lemmas in train + dev"""
     train_lemmas, dev_lemmas, test_lemmas = parse_files(path, 0)
@@ -38,6 +46,7 @@ def train_size(path):
     train_feats, dev_feats, test_feats = parse_files(path, -1)
     assert(len(train_feats) != 0 and len(dev_feats) != 0 and len(test_feats) != 0)
     return len(train_feats)
+ 
 
 def investigate_feature_overlap(path, verbose = True):
     """Helper function to investigate the feature overlap"""
