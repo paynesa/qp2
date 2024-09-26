@@ -229,3 +229,60 @@ df %>%
         axis.title.x = element_text(size=14),
   )
 
+
+
+##### Effects on test accuracy overall rather than on test #####
+
+Gold <- df %>% 
+  select(train=Goldman_train_size, 
+         lemmas = Goldman_train_lemmas,
+         test = Goldman_test_acc, 
+         Family = Family
+         ) 
+Gold$Type = "Goldman"
+
+Sigm <- df %>% 
+  select(train = SIGMORPHON_train_size,
+         lemmas = SIGMORPHON_train_lemmas,
+         test = SIGMORPHON_test_acc,
+         Family = Family
+         )
+Sigm$Type = "SIGMORPHON"
+
+new_df = rbind(Gold, Sigm)
+
+new_df %>% 
+  ggplot(aes(log(train), log(test + 1), color = Type)) +
+  geom_point(aes(shape = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  stat_smooth(aes(color=Type), method="lm", size=0.5, alpha = 0.5)+ 
+  theme_bw() + 
+  xlab("Training size") + 
+  ylab("Test accuracy") + 
+  ggtitle("Test accuracy vs. training size") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  ) 
+correlations(log(df$Goldman_train_size), log(df$Goldman_test_acc + 1))
+correlations(log(df$SIGMORPHON_train_size), log(df$SIGMORPHON_test_acc + 1))
+
+
+
+new_df %>% 
+  ggplot(aes(log(lemmas), log(test + 1), color = Type)) +
+  geom_point(aes(shape = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  stat_smooth(aes(color=Type), method="lm", size=0.5, alpha = 0.5) + 
+  theme_bw() + 
+  xlab("Training lemmas") + 
+  ylab("Test accuracy") + 
+  ggtitle("Test accuracy vs. training lemmas") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  ) 
+
+correlations(log(df$Goldman_train_lemmas), log(df$Goldman_test_acc + 1))
+correlations(log(df$SIGMORPHON_train_lemmas), log(df$SIGMORPHON_test_acc + 1))
+
