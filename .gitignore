@@ -12,4 +12,4 @@ writeup/acl_latex.fdb_latexmk
 writeup/acl_latex.fls
 writeup/acl_latex.log
 writeup/acl_latex.out
-
+writeup/.DS_Store

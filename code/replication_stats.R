@@ -158,30 +158,168 @@ correlations(log(df$Goldman_train_lemmas), df$log_train_lemma_diff)
 train_size_lm = lm(log_test_acc_drop ~ log(Goldman_train_size), data = df)
 summary(train_size_lm)
 AIC(train_size_lm)
+layout(matrix(c(1,2,3,4),2,2)) 
+plot(train_size_lm)
+df %>% 
+  ggplot(aes(log(Goldman_train_size), log_test_acc_drop)) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Goldman et al. training size, log scale") + 
+  ylab("Test accuracy drop, log scale") + 
+  ggtitle("Test accuracy drop vs. training size") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )  + 
+  geom_line(aes(x = log(Goldman_train_size), y = predict(train_size_lm)), color = "black")
+
+
+# Fit a linear model with splines to just train size and look at the R^2 & AIC
+train_size_lm2 = lm(log_test_acc_drop ~ splines::bs(log(Goldman_train_size), df = 5), data = df)
+summary(train_size_lm2)
+AIC(train_size_lm2)
+layout(matrix(c(1,2,3,4),2,2)) 
+plot(train_size_lm2)
+df %>% 
+  ggplot(aes(log(Goldman_train_size), log_test_acc_drop)) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Goldman et al. training size, log scale") + 
+  ylab("Test accuracy drop, log scale") + 
+  ggtitle("Test accuracy drop vs. training size") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )  + 
+  geom_line(aes(x = log(Goldman_train_size), y = predict(train_size_lm2)), color = "black")
+
 
 # Fit a linear model to just train lemmas and look at the R^2 and AIC
 train_lemma_lm = lm(log_test_acc_drop ~ log(Goldman_train_lemmas), data = df)
 summary(train_lemma_lm)
 AIC(train_lemma_lm)
+layout(matrix(c(1,2,3,4),2,2)) 
+plot(train_lemma_lm)
+df %>% 
+  ggplot(aes(log(Goldman_train_lemmas), log_test_acc_drop)) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Goldman et al. number of training lemmas, log scale") + 
+  ylab("Test accuracy drop, log scale") + 
+  ggtitle("Test accuracy drop vs. number of training lemmas") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )  + 
+  geom_line(aes(x = log(Goldman_train_lemmas), y = predict(train_lemma_lm)), color = "black")
+
+
+
+# Fit a linear model with splines to just train lemmas and look at the R^2 and AIC
+train_lemma_lm2 = lm(log_test_acc_drop ~ splines::bs(log(Goldman_train_lemmas), df = 5), data = df)
+summary(train_lemma_lm2)
+AIC(train_lemma_lm2)
+layout(matrix(c(1,2,3,4),2,2)) 
+plot(train_lemma_lm2)
+df %>% 
+  ggplot(aes(log(Goldman_train_lemmas), log_test_acc_drop)) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Goldman et al. number of training lemmas, log scale") + 
+  ylab("Test accuracy drop, log scale") + 
+  ggtitle("Test accuracy drop vs. number of training lemmas") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )  + 
+  geom_line(aes(x = log(Goldman_train_lemmas), y = predict(train_lemma_lm2)), color = "black")
+
+
 
 # Fit a linear model to just lemma drop and look at the R^2 and AIC
 lemma_drop_lm = lm(log_test_acc_drop ~ log_train_lemma_diff, data = df)
 summary(lemma_drop_lm)
 AIC(lemma_drop_lm)
+layout(matrix(c(1,2,3,4),2,2)) 
+plot(lemma_drop_lm)
+df %>% 
+  ggplot(aes(-log(-1*train_lemma_diff_raw), log_test_acc_drop)) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Training lemma difference between SIGMORPHON & Goldman et al., log scale") + 
+  ylab("Test accuracy drop, log scale") + 
+  ggtitle("Test accuracy drop vs. training lemma drop") +
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )  + 
+  geom_line(aes(x = -log(-1*train_lemma_diff_raw), y = predict(lemma_drop_lm)), color = "black")
+
+
+# Fit a linear model with splines to just lemma drop and look at the R^2 and AIC
+lemma_drop_lm2 = lm(log_test_acc_drop ~ splines::bs(log_train_lemma_diff, df = 5), data = df)
+summary(lemma_drop_lm2)
+AIC(lemma_drop_lm2)
+layout(matrix(c(1,2,3,4),2,2)) 
+plot(lemma_drop_lm2)
+df %>% 
+  ggplot(aes(-log(-1*train_lemma_diff_raw), log_test_acc_drop)) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Training lemma difference between SIGMORPHON & Goldman et al., log scale") + 
+  ylab("Test accuracy drop, log scale") + 
+  ggtitle("Test accuracy drop vs. training lemma drop") +
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )  + 
+  geom_line(aes(x = -log(-1*train_lemma_diff_raw), y = predict(lemma_drop_lm2)), color = "black")
+
 
 # Fit a linear model to lemmas + train size
 lemmas_train_lm = lm(log_test_acc_drop ~ log(Goldman_train_size) + log(Goldman_train_lemmas), data = df)
 summary(lemmas_train_lm)
 AIC(lemmas_train_lm)
+layout(matrix(c(1,2,3,4),2,2)) 
+plot(lemmas_train_lm)
 anova(train_lemma_lm, lemmas_train_lm)
 vif(lemmas_train_lm)
+
+
+# Fit a linear model with splines to lemmas + train size
+lemmas_train_lm2 = lm(log_test_acc_drop ~ splines::bs(log(Goldman_train_size), df = 5) + splines::bs(log(Goldman_train_lemmas), df = 5), data = df)
+summary(lemmas_train_lm2)
+AIC(lemmas_train_lm2)
+layout(matrix(c(1,2,3,4),2,2)) 
+plot(lemmas_train_lm2)
+anova(train_lemma_lm2, lemmas_train_lm2)
+vif(lemmas_train_lm2)
+
 
 # Fit a linear model to lemmas + lemma drop
 lemmas_drop_lm = lm(log_test_acc_drop ~ log(Goldman_train_lemmas) + log_train_lemma_diff, data = df)
 summary(lemmas_drop_lm)
 AIC(lemmas_drop_lm)
+layout(matrix(c(1,2,3,4),2,2)) 
+plot(lemmas_drop_lm)
 anova(train_lemma_lm, lemmas_drop_lm)
 vif(lemmas_drop_lm)
+
+
+# Fit a linear model with splines to lemmas + lemma drop
+lemmas_drop_lm2 = lm(log_test_acc_drop ~ splines::bs(log(Goldman_train_lemmas), df = 5) + splines::bs(log_train_lemma_diff, df = 5), data = df)
+summary(lemmas_drop_lm2)
+AIC(lemmas_drop_lm2)
+layout(matrix(c(1,2,3,4),2,2)) 
+plot(lemmas_drop_lm2)
+anova(train_lemma_lm2, lemmas_drop_lm2)
+vif(lemmas_drop_lm2)
 
 
 
@@ -257,8 +395,8 @@ new_df %>%
   scale_color_manual(values=c("turquoise", "purple", "gold")) + 
   stat_smooth(aes(color=Type), method="lm", size=0.5, alpha = 0.5)+ 
   theme_bw() + 
-  xlab("Training size") + 
-  ylab("Test accuracy") + 
+  xlab("Training size, log scale") + 
+  ylab("Test accuracy, log scale") + 
   ggtitle("Test accuracy vs. training size") + 
   theme(plot.title = element_text(hjust=0.5, size=18), 
         axis.title.y = element_text(size=14),
@@ -275,8 +413,8 @@ new_df %>%
   scale_color_manual(values=c("turquoise", "purple", "gold")) + 
   stat_smooth(aes(color=Type), method="lm", size=0.5, alpha = 0.5) + 
   theme_bw() + 
-  xlab("Training lemmas") + 
-  ylab("Test accuracy") + 
+  xlab("Training lemmas, log scale") + 
+  ylab("Test accuracy, log scale") + 
   ggtitle("Test accuracy vs. training lemmas") + 
   theme(plot.title = element_text(hjust=0.5, size=18), 
         axis.title.y = element_text(size=14),
@@ -285,4 +423,119 @@ new_df %>%
 
 correlations(log(df$Goldman_train_lemmas), log(df$Goldman_test_acc + 1))
 correlations(log(df$SIGMORPHON_train_lemmas), log(df$SIGMORPHON_test_acc + 1))
+
+
+##### Pirate Stats Part 2! #####
+
+# Co-linearities 
+correlations(log(df$Goldman_train_size), log(df$Goldman_train_lemmas))
+correlations(log(df$SIGMORPHON_train_size), log(df$SIGMORPHON_train_lemmas))
+
+
+# Fit a linear model to just train size and look at the R^2 & AIC
+train_size_lm = lm(log(Goldman_test_acc + 1) ~ log(Goldman_train_size), data = df)
+summary(train_size_lm)
+AIC(train_size_lm)
+layout(matrix(c(1,2,3,4),2,2)) 
+plot(train_size_lm)
+df %>% 
+  ggplot(aes(log(Goldman_train_size), log(Goldman_test_acc + 1))) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Goldman et al. training size, log scale") + 
+  ylab("Goldman et al. test accuracy, log scale") + 
+  ggtitle("Goldman et al. test accuracy vs. training size") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )  + 
+  geom_line(aes(x = log(Goldman_train_size), y = predict(train_size_lm)), color = "black")
+
+
+# Fit a linear model with splines to just train size and look at the R^2 & AIC
+train_size_lm2 = lm(log(Goldman_test_acc + 1) ~ splines::bs(log(Goldman_train_size), df = 5), data = df)
+summary(train_size_lm2)
+AIC(train_size_lm2)
+layout(matrix(c(1,2,3,4),2,2)) 
+plot(train_size_lm2)
+df %>% 
+  ggplot(aes(log(Goldman_train_size), log(Goldman_test_acc + 1))) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Goldman et al. training size, log scale") + 
+  ylab("Goldman et al. test accuracy, log scale") + 
+  ggtitle("Goldman et al. test accuracy vs. training size") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )  + 
+  geom_line(aes(x = log(Goldman_train_size), y = predict(train_size_lm2)), color = "black")
+
+
+
+# Fit a linear model to just train lemmas and look at the R^2 and AIC
+train_lemma_lm = lm(log(Goldman_test_acc + 1) ~ log(Goldman_train_lemmas), data = df)
+summary(train_lemma_lm)
+AIC(train_lemma_lm)
+layout(matrix(c(1,2,3,4),2,2)) 
+plot(train_lemma_lm)
+df %>% 
+  ggplot(aes(log(Goldman_train_lemmas), log(Goldman_test_acc + 1))) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Goldman et al. number of training lemmas, log scale") + 
+  ylab("Goldman et al. test accuracy, log scale") + 
+  ggtitle("Goldman et al. test accuracy vs. number of training lemmas") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )  + 
+  geom_line(aes(x = log(Goldman_train_lemmas), y = predict(train_lemma_lm)), color = "black")
+
+
+# Fit a linear model to just train lemmas and look at the R^2 and AIC
+train_lemma_lm2 = lm(log(Goldman_test_acc + 1) ~ splines::bs(log(Goldman_train_lemmas), df = 5), data = df)
+summary(train_lemma_lm2)
+AIC(train_lemma_lm2)
+layout(matrix(c(1,2,3,4),2,2)) 
+plot(train_lemma_lm2)
+df %>% 
+  ggplot(aes(log(Goldman_train_lemmas), log(Goldman_test_acc + 1))) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Goldman et al. number of training lemmas, log scale") + 
+  ylab("Goldman et al. test accuracy, log scale") + 
+  ggtitle("Goldman et al. test accuracy vs. number of training lemmas") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )  + 
+  geom_line(aes(x = log(Goldman_train_lemmas), y = predict(train_lemma_lm2)), color = "black")
+
+
+
+# Fit a linear model to both & compare 
+lemmas_train_lm = lm(log(Goldman_test_acc + 1) ~ log(Goldman_train_size) + log(Goldman_train_lemmas), data = df)
+summary(lemmas_train_lm)
+AIC(lemmas_train_lm)
+layout(matrix(c(1,2,3,4),2,2)) 
+plot(lemmas_train_lm)
+anova(train_lemma_lm, lemmas_train_lm)
+anova(train_size_lm, lemmas_train_lm)
+vif(lemmas_train_lm)
+
+
+# Fit a linear model with splines to both & compare 
+lemmas_train_lm2 = lm(log(Goldman_test_acc + 1) ~ splines::bs(log(Goldman_train_size), df = 5) + splines::bs(log(Goldman_train_lemmas), df = 5), data = df)
+summary(lemmas_train_lm2)
+AIC(lemmas_train_lm2)
+layout(matrix(c(1,2,3,4),2,2)) 
+plot(lemmas_train_lm2)
+anova(train_lemma_lm2, lemmas_train_lm2)
+anova(train_size_lm2, lemmas_train_lm2)
+vif(lemmas_train_lm2)
 
