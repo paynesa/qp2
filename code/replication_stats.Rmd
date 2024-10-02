@@ -1,0 +1,582 @@
+---
+title: "Goldman Replication & Statistics"
+output: html_notebook
+---
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+library(car)
+library(mgcv)
+require(splines)
+```
+
+# Statistics for Replicating Goldman et al. (2022)
+
+This notebook contains plotting and exploratory statistics for replicating Goldman et al. (2022) on a subset of 3 language families: Uralic, Romance, and Niger-Congo. We investigate predictors both of overall raw performance and performance drop by plotting and running a range of regression models.
+
+# Read in & Process the Data
+
+```{r}
+df<-read.csv("replication/replication_complete.csv")
+
+# Make the family column pretty 
+df$Family = str_to_title(str_replace(df$Family, "_", " "))
+
+# We're going to be making a lot of log-log plots, so lets make our lives easier:
+df$log_test_acc_drop = -1*log((-1*df$test_acc_drop)+1)
+df$log_train_lemma_diff = -1*log(-1*df$train_lemma_diff_raw)
+```
+
+# Investigating Relationships with Accuracy Drop
+
+We begin by investigating relationships between test accuracy drop (between SIGMORPHON 2020 & Goldman et al 2022) and various predictors. Exploratory analysis tells us that relevant predictors include the Goldman et al. training size, the number of training lemmas in the Goldman et al. data, and the decrease in the number of training lemmas between SIGMORPHON and Goldman et al. We begin by visualizing these relationships and running basic stats to verify them.
+
+## Basic Unscaled Scatter Plots
+
+#### Training Size
+
+```{r}
+df %>% 
+  ggplot(aes(Goldman_train_size, test_acc_drop)) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Goldman et al. training size") + 
+  ylab("Test accuracy drop") + 
+  ggtitle("Replication of Goldman et al.") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+        )
+```
+
+#### Training Lemmas
+
+```{r}
+df %>% 
+  ggplot(aes(Goldman_train_lemmas, test_acc_drop)) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Goldman et al. training lemmas") + 
+  ylab("Test accuracy drop") + 
+  ggtitle("Test accuracy drop vs. training lemmas") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )
+```
+
+#### Training Lemma Drop
+
+```{r}
+df %>% 
+  ggplot(aes(train_lemma_diff_raw, test_acc_drop)) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Training lemma difference between SIGMORPHON & Goldman et al.") + 
+  ylab("Test accuracy drop") + 
+  ggtitle("Test accuracy drop vs. training lemma drop") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )
+```
+
+## Visualization & Elementary Statistics
+
+```{r}
+# We'll use this helper function to run our stats
+correlations <- function(a, b){
+  for (m in list("pearson", "spearman", "kendall")){
+    # Supressing warnings bc we'll get them whenever there are ties 
+    suppressWarnings(res <- cor.test(a, b, method = m))
+    formatted <- sprintf("%s: %f (p = %e)", res$method, res$estimate, res$p.value)
+    print(formatted)
+  }
+}
+
+# We'll use this helper function to get information about our model
+eval_model <- function(model, df){
+  rsquared = summary(model)$r.squared
+  AIC = AIC(model)
+  results <- sprintf("R^2: %f, AIC: %f", rsquared, AIC)
+  print(results)
+  layout(matrix(c(1,2,3,4),2,2)) 
+  plot(model)
+  return(predict(model, df, se = TRUE))
+}
+
+# We'll use this helper function to compare two models 
+compare_models <- function(model_both, model_single){
+  layout(matrix(c(1,2,3,4),2,2)) 
+  plot(model_both)
+  AIC = AIC(model_both)
+  anovap = anova(model_both, model_single)$`Pr(>F)`[-1]
+  results <- sprintf("AIC: %f, ANOVA p: %f", AIC, anovap)
+  print(results)
+  vif(model_both)
+}
+```
+
+#### Training size vs. test accuracy drop
+
+```{r}
+train_size_lm = lm(log_test_acc_drop ~ log(Goldman_train_size), data = df)
+pred <- eval_model(train_size_lm, df)
+
+df %>% 
+  ggplot(aes(log(Goldman_train_size), log_test_acc_drop)) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Goldman et al. training size, log scale") + 
+  ylab("Test accuracy drop, log scale") + 
+  ggtitle("Test accuracy drop vs. training size") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )  +
+  geom_ribbon(aes(x = log(Goldman_train_size), 
+                  ymin = pred$fit - 2 * pred$se.fit, 
+                  ymax = pred$fit + 2 * pred$se.fit), 
+              fill = "grey", 
+              alpha = .4) + 
+  geom_line(aes(x = log(Goldman_train_size), y = pred$fit), color = "black")
+
+correlations(log(df$Goldman_train_size), df$log_test_acc_drop)
+```
+
+#### Training lemmas vs. test accuracy drop
+
+```{r}
+train_lemma_lm = lm(log_test_acc_drop ~ log(Goldman_train_lemmas), data = df)
+pred <- eval_model(train_lemma_lm, df)
+
+df %>% 
+  ggplot(aes(log(Goldman_train_lemmas), log_test_acc_drop)) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Goldman et al. number of training lemmas, log scale") + 
+  ylab("Test accuracy drop, log scale") + 
+  ggtitle("Test accuracy drop vs. number of training lemmas") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )  + 
+  geom_ribbon(aes(x = log(Goldman_train_lemmas), 
+                 ymin = pred$fit - 2 * pred$se.fit, 
+                 ymax = pred$fit + 2 * pred$se.fit), 
+             fill = "grey", 
+             alpha = .4) + 
+  geom_line(aes(x = log(Goldman_train_lemmas), y = pred$fit), color = "black")
+
+correlations(log(df$Goldman_train_lemmas), df$log_test_acc_drop)
+```
+
+#### Training lemma drop vs. test accuracy drop
+
+```{r}
+lemma_drop_lm = lm(log_test_acc_drop ~ log_train_lemma_diff, data = df)
+pred <- eval_model(lemma_drop_lm, df)
+
+df %>% 
+  ggplot(aes(log_train_lemma_diff, log_test_acc_drop)) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Training lemma drop, log scale") + 
+  ylab("Test accuracy drop, log scale") + 
+  ggtitle("Test accuracy drop vs. training lemma drop") +
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )  + 
+  geom_ribbon(aes(x = log_train_lemma_diff, 
+                 ymin = pred$fit - 2 * pred$se.fit, 
+                 ymax = pred$fit + 2 * pred$se.fit), 
+             fill = "grey", 
+             alpha = .4) + 
+  geom_line(aes(x = log_train_lemma_diff, y = pred$fit), color = "black")
+
+correlations(df$log_train_lemma_diff, df$log_test_acc_drop)
+```
+
+## Co-Linearity
+
+Intuitively, it makes sense that several of the possible predictors above would be co-linear: larger training data will generally contain more lemmas, for example. We investigate these co-linearities below.
+
+#### Training size vs. training lemmas
+
+```{r}
+df %>% 
+  ggplot(aes(log(Goldman_train_size), log(Goldman_train_lemmas))) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Goldman et al. training size, log scale") + 
+  ylab("Goldman et al. number of training lemmas, log scale") + 
+  ggtitle("Training size vs. training lemmas, log scale") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )  + 
+  stat_smooth(method="lm", color="black", size=0.5, alpha = 0.5)
+
+correlations(log(df$Goldman_train_size), log(df$Goldman_train_lemmas))
+```
+
+#### Training size vs. difference in training lemmas
+
+```{r}
+df %>%
+  ggplot(aes(log(Goldman_train_size), log_train_lemma_diff)) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Goldman et al. training size, log scale") + 
+  ylab("Training lemma difference, log scale") + 
+  ggtitle("Training size vs. training lemma drop") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )  + 
+  stat_smooth(method="lm", color="black", size=0.5, alpha = 0.5)
+
+correlations(log(df$Goldman_train_size), df$log_train_lemma_diff)
+```
+
+#### Training lemmas vs. difference in training lemmas
+
+```{r}
+df %>%
+  ggplot(aes(log(Goldman_train_lemmas), log_train_lemma_diff)) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Goldman et al. training lemmas, log scale") + 
+  ylab("Training lemma difference, log scale") + 
+  ggtitle("Training lemmas vs. training lemma drop") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )  + 
+  stat_smooth(method="lm", color="black", size=0.5, alpha = 0.5)
+
+correlations(log(df$Goldman_train_lemmas), df$log_train_lemma_diff)
+```
+
+## Pirate Stats, Linear Version 🏴‍☠️
+
+We now have three possible predictor variables which we know have relationships with one another, so we want to figure out a way to disentangle these relationships to figure out which variable(s) predict drops in model performance. We do this by fitting linear models and examining the difference in model fit.
+
+#### Lemmas + Train Size
+
+```{r}
+lemmas_plus_train_lm = lm(log_test_acc_drop ~ log(Goldman_train_size) + log(Goldman_train_lemmas), data = df)
+compare_models(lemmas_plus_train_lm, train_lemma_lm)
+```
+
+#### Lemmas + Lemma Drop
+
+```{r}
+lemmas_drop_lm = lm(log_test_acc_drop ~ log(Goldman_train_lemmas) + log_train_lemma_diff, data = df)
+compare_models(lemmas_drop_lm, train_lemma_lm)
+```
+
+## Pirate Stats, Non-Linear Version 🏴‍☠️
+
+TODO
+
+#### Training size vs. test accuracy drop
+
+```{r}
+ns_train_size_lm = lm(log_test_acc_drop ~ ns(log(Goldman_train_size), df=3), data = df)
+pred <- eval_model(ns_train_size_lm, df)
+
+df %>% 
+  ggplot(aes(log(Goldman_train_size), log_test_acc_drop)) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Goldman et al. training size, log scale") + 
+  ylab("Test accuracy drop, log scale") + 
+  ggtitle("Test accuracy drop vs. training size") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )  +
+  geom_ribbon(aes(x = log(Goldman_train_size), 
+                  ymin = pred$fit - 2 * pred$se.fit, 
+                  ymax = pred$fit + 2 * pred$se.fit), 
+              fill = "grey", 
+              alpha = .4) + 
+  geom_line(aes(x = log(Goldman_train_size), y = pred$fit), color = "black")
+```
+
+#### Train lemmas vs. test accuracy drop
+
+```{r}
+ns_train_lemma_lm = lm(log_test_acc_drop ~ ns(log(Goldman_train_lemmas), df = 3), data = df)
+pred <- eval_model(ns_train_lemma_lm, df)
+
+df %>% 
+  ggplot(aes(log(Goldman_train_lemmas), log_test_acc_drop)) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Goldman et al. number of training lemmas, log scale") + 
+  ylab("Test accuracy drop, log scale") + 
+  ggtitle("Test accuracy drop vs. number of training lemmas") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )  + 
+  geom_ribbon(aes(x = log(Goldman_train_lemmas), 
+                 ymin = pred$fit - 2 * pred$se.fit, 
+                 ymax = pred$fit + 2 * pred$se.fit), 
+             fill = "grey", 
+             alpha = .4) + 
+  geom_line(aes(x = log(Goldman_train_lemmas), y = pred$fit), color = "black")
+```
+
+#### Training Lemma Drop vs. Test Accuracy Drop
+
+```{r}
+ns_lemma_drop_lm = lm(log_test_acc_drop ~ ns(log_train_lemma_diff, df = 3), data = df)
+pred <- eval_model(ns_lemma_drop_lm, df)
+
+df %>% 
+  ggplot(aes(log_train_lemma_diff, log_test_acc_drop)) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Training lemma drop, log scale") + 
+  ylab("Test accuracy drop, log scale") + 
+  ggtitle("Test accuracy drop vs. training lemma drop") +
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )  + 
+  geom_ribbon(aes(x = log_train_lemma_diff, 
+                 ymin = pred$fit - 2 * pred$se.fit, 
+                 ymax = pred$fit + 2 * pred$se.fit), 
+             fill = "grey", 
+             alpha = .4) + 
+  geom_line(aes(x = log_train_lemma_diff, y = pred$fit), color = "black")
+```
+
+#### Lemmas + Train Size
+
+```{r}
+ns_lemmas_plus_train_lm = lm(log_test_acc_drop ~ ns(log(Goldman_train_size), df = 3) + ns(log(Goldman_train_lemmas), df = 3), data = df)
+compare_models(ns_lemmas_plus_train_lm, ns_train_lemma_lm)
+```
+
+#### Lemmas + Lemma Drop
+
+```{r}
+ns_lemmas_drop_lm = lm(log_test_acc_drop ~ ns(log(Goldman_train_lemmas), df = 3) + ns(log_train_lemma_diff, df = 3), data = df)
+compare_models(ns_lemmas_drop_lm, ns_train_lemma_lm)
+```
+
+# Investigating Relationships with Raw Accuracy
+
+## Create a dataset that TODO
+
+```{r}
+Gold <- df %>% 
+  select(train=Goldman_train_size, 
+         lemmas = Goldman_train_lemmas,
+         test = Goldman_test_acc, 
+         Family = Family
+         ) 
+Gold$Type = "Goldman"
+
+Sigm <- df %>% 
+  select(train = SIGMORPHON_train_size,
+         lemmas = SIGMORPHON_train_lemmas,
+         test = SIGMORPHON_test_acc,
+         Family = Family
+         )
+Sigm$Type = "SIGMORPHON"
+
+new_df = rbind(Gold, Sigm)
+```
+
+## Visualize the Effects
+
+#### Training Size
+
+```{r}
+new_df %>% 
+  ggplot(aes(log(train), log(test + 1), color = Type)) +
+  geom_point(aes(shape = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  stat_smooth(aes(color=Type), method="lm", size=0.5, alpha = 0.5)+ 
+  theme_bw() + 
+  xlab("Training size, log scale") + 
+  ylab("Test accuracy, log scale") + 
+  ggtitle("Test accuracy vs. training size") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  ) 
+print("-------GOLDMAN ------")
+correlations(log(df$Goldman_train_size), log(df$Goldman_test_acc + 1))
+print("-------SIGMORPHON -------")
+correlations(log(df$SIGMORPHON_train_size), log(df$SIGMORPHON_test_acc + 1))
+```
+
+#### Training Lemmas
+
+```{r}
+new_df %>% 
+  ggplot(aes(log(lemmas), log(test + 1), color = Type)) +
+  geom_point(aes(shape = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  stat_smooth(aes(color=Type), method="lm", size=0.5, alpha = 0.5) + 
+  theme_bw() + 
+  xlab("Training lemmas, log scale") + 
+  ylab("Test accuracy, log scale") + 
+  ggtitle("Test accuracy vs. training lemmas") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  ) 
+print("-------GOLDMAN ------")
+correlations(log(df$Goldman_train_lemmas), log(df$Goldman_test_acc + 1))
+print("-------SIGMORPHON -------")
+correlations(log(df$SIGMORPHON_train_lemmas), log(df$SIGMORPHON_test_acc + 1))
+```
+
+## Raw Accuracy Pirate Stats, Linear Version 🏴‍☠️
+
+#### Co-Linearities
+
+```{r}
+print("-------GOLDMAN ------")
+correlations(log(df$Goldman_train_size), log(df$Goldman_train_lemmas))
+print("-------SIGMORPHON -------")
+correlations(log(df$SIGMORPHON_train_size), log(df$SIGMORPHON_train_lemmas))
+```
+
+#### Training Size vs. Goldman et al. Accuracy
+
+```{r}
+train_size_lm = lm(log(Goldman_test_acc + 1) ~ log(Goldman_train_size), data = df)
+pred <- eval_model(train_size_lm, df)
+
+df %>% 
+  ggplot(aes(log(Goldman_train_size), log(Goldman_test_acc + 1))) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Goldman et al. training size, log scale") + 
+  ylab("Goldman et al. test accuracy, log scale") + 
+  ggtitle("Goldman et al. test accuracy vs. training size") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )  + 
+  geom_ribbon(aes(x = log(Goldman_train_size), 
+                  ymin = pred$fit - 2 * pred$se.fit, 
+                  ymax = pred$fit + 2 * pred$se.fit), 
+              fill = "grey", 
+              alpha = .4) + 
+  geom_line(aes(x = log(Goldman_train_size), y = pred$fit), color = "black") 
+```
+
+#### Number of Training Lemmas vs. Goldman et al. Test Accuracy
+
+```{r}
+train_lemma_lm = lm(log(Goldman_test_acc + 1) ~ log(Goldman_train_lemmas), data = df)
+pred <- eval_model(train_lemma_lm)
+
+df %>% 
+  ggplot(aes(log(Goldman_train_lemmas), log(Goldman_test_acc + 1))) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Goldman et al. number of training lemmas, log scale") + 
+  ylab("Goldman et al. test accuracy, log scale") + 
+  ggtitle("Goldman et al. test accuracy vs. number of training lemmas") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )  + 
+  geom_ribbon(aes(x = log(Goldman_train_lemmas), ymin = pred$fit - 2 * pred$se.fit, ymax = pred$fit + 2 * pred$se.fit), fill = "grey", alpha = .4) + 
+  geom_line(aes(x = log(Goldman_train_lemmas), y = predict(train_lemma_lm)), color = "black")
+
+```
+
+#### Training Size & Number of Training Lemmas
+
+```{r}
+lemmas_plus_train_lm <- lm(log(Goldman_test_acc + 1) ~ log(Goldman_train_size) + log(Goldman_train_lemmas), data = df)
+compare_models(lemmas_plus_train_lm, train_lemma_lm)
+compare_models(lemmas_plus_train_lm, train_size_lm)
+```
+
+## Raw Accuracy Pirate Stats, Non-Linear Version 🏴‍☠️
+
+#### Training Size
+
+```{r}
+ns_train_size_lm = lm(log(Goldman_test_acc + 1) ~ ns(log(Goldman_train_size), df = 3), data = df)
+pred <- eval_model(ns_train_size_lm, df)
+df %>% 
+  ggplot(aes(log(Goldman_train_size), log(Goldman_test_acc + 1))) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Goldman et al. training size, log scale") + 
+  ylab("Goldman et al. test accuracy, log scale") + 
+  ggtitle("Goldman et al. test accuracy vs. training size") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )  + 
+  geom_ribbon(aes(x = log(Goldman_train_size), 
+                  ymin = pred$fit - 2 * pred$se.fit, 
+                  ymax = pred$fit + 2 * pred$se.fit), 
+              fill = "grey", 
+              alpha = .4) + 
+  geom_line(aes(x = log(Goldman_train_size), y = pred$fit), color = "black")
+```
+
+#### Training Lemmas 
+
+```{r}
+ns_train_lemma = lm(log(Goldman_test_acc + 1) ~ ns(log(Goldman_train_lemmas), df = 3), data = df)
+pred <-  eval_model(ns_train_lemma, df)
+df %>% 
+  ggplot(aes(log(Goldman_train_lemmas), log(Goldman_test_acc + 1))) + 
+  geom_point(aes(colour = Family), size = 5, alpha = 0.5) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  theme_bw() + 
+  xlab("Goldman et al. number of training lemmas, log scale") + 
+  ylab("Goldman et al. test accuracy, log scale") + 
+  ggtitle("Goldman et al. test accuracy vs. number of training lemmas") + 
+  theme(plot.title = element_text(hjust=0.5, size=18), 
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+  )  + 
+  geom_ribbon(aes(x = log(Goldman_train_lemmas), 
+                  ymin = pred$fit - 2 * pred$se.fit, 
+                  ymax = pred$fit + 2 * pred$se.fit), 
+              fill = "grey", 
+              alpha = .4) + 
+  geom_line(aes(x = log(Goldman_train_lemmas), y = pred$fit), color = "black")
+```
+
+#### Training Size + Training Lemmas
+
+```{r}
+ns_lemmas_plus_train_lm <- lm(log(Goldman_test_acc + 1) ~ ns(log(Goldman_train_size), df = 3) + ns(log(Goldman_train_lemmas), df = 3), data = df)
+compare_models(ns_lemmas_plus_train_lm, ns_train_lemma)
+compare_models(ns_lemmas_plus_train_lm, ns_train_size_lm)
+```
