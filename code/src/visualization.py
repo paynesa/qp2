@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from scipy import stats 
+from src.data_exploration import *
 
 def plot_stats(x, y, xlab, ylab, savefig=None, less=False):
     """Helper function to make the plots aesthetic and run stats"""
@@ -116,3 +117,54 @@ def run_plotting(df, col1, col2, xlabel=None, ylabel=None, title=None):
     run_stats(df.query("Family == 'niger_congo'"), col1, col2)
     print("\n-------------------\nUralic:\n-------------------")
     run_stats(df.query("Family == 'uralic'"), col1, col2)
+
+
+
+def difference_density(PATH_TO_GOLDMAN_DATA, PATH_TO_SIGMORPHON20, lemmas):
+    """Make density plots for difference between number of lemmas or train size"""
+    
+    def make_dict(path, lemmas):
+        """Inner helper function to make the dictionaries mapping languages to counts"""
+        lang_dict = {}
+        for f in [f for f in os.listdir(path) if "." not in f]:
+            for lang in set([l.strip().split(".")[0] for l in os.listdir(f"{path}/{f}")]):
+                train, _, _, = parse_files(f"{path}/{f}/{lang}", 0)
+                if lemmas:
+                    lang_dict[lang] = len(set(train))
+                else:
+                    lang_dict[lang] = len(train)
+        return lang_dict 
+    
+    # Get the dictionaries for the Goldman & SIGMORPHON data
+    goldman_dict = make_dict(PATH_TO_GOLDMAN_DATA, lemmas)
+    sigmorphon_dict = make_dict(PATH_TO_SIGMORPHON20, lemmas)
+    
+    # Calculate the percent differences & find the mean and standard deviation 
+    differences = np.asarray([100 * (goldman_dict[lang] - sigmorphon_dict[lang]) / sigmorphon_dict[lang] for lang in goldman_dict])
+    print(f"Mean: {np.mean(differences) :.3f}")
+    print(f"Standard deviation: {np.std(differences) :.3f}")
+    
+    # Plot the results 
+    sns.displot(differences,
+                color="indigo",
+                linewidth=0,
+                alpha=0.4,
+                kde=True,
+                binwidth = 3,
+                kde_kws = {"bw_adjust": 0.7},
+                stat="density",
+                aspect=1.5,
+               )
+    plt.xlabel(
+        f"Percent difference in train {'lemmas' if lemmas else 'size'} from SIGMORPHON 2020 to Goldman et al.",
+        fontsize = 12
+    )
+    plt.ylabel(
+        "Density",
+        fontsize = 12
+    )
+    plt.title(
+        f"Difference in Training {'Lemmas' if lemmas else 'Size'} between SIGMORPHON & Goldman et al.",
+        fontsize = 14
+    )
+    plt.savefig(f"../writeup/figs/{'lemmas' if lemmas else 'training'}_difference.png", dpi=500, bbox_inches='tight')
