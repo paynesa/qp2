@@ -1,7 +1,13 @@
 ---
-title: "Goldman Replication & Statistics"
+title: "Statistics for Replicating Goldman et al. (2022)"
 output: html_notebook
 ---
+
+This notebook contains code to execute plotting and exploratory statistics for replicating Goldman et al. (2022) on a subset of 3 language families: Uralic, Romance, and Niger-Congo. We begin by investigating predictors of accuracy drop between SIGMORPHON (2020) and Goldman et al. (2022), then investigate the relationship between raw accuracy on the Goldman et al. test data and various predictors.
+
+# Setup 
+
+#### Load Libaries 
 
 ```{r}
 library(ggplot2)
@@ -11,13 +17,10 @@ library(mgcv)
 require(splines)
 ```
 
-# Statistics for Replicating Goldman et al. (2022)
-
-This notebook contains plotting and exploratory statistics for replicating Goldman et al. (2022) on a subset of 3 language families: Uralic, Romance, and Niger-Congo. We investigate predictors both of overall raw performance and performance drop by plotting and running a range of regression models.
-
-# Read in & Process the Data
+#### Read in & Process the Data
 
 ```{r}
+# Read in the data 
 df<-read.csv("replication/replication_complete.csv")
 
 # Make the family column pretty 
@@ -28,11 +31,57 @@ df$log_test_acc_drop = -1*log((-1*df$test_acc_drop)+1)
 df$log_train_lemma_diff = -1*log(-1*df$train_lemma_diff_raw)
 ```
 
-# Investigating Relationships with Accuracy Drop
+#### Define Helper Functions 
 
-We begin by investigating relationships between test accuracy drop (between SIGMORPHON 2020 & Goldman et al 2022) and various predictors. Exploratory analysis tells us that relevant predictors include the Goldman et al. training size, the number of training lemmas in the Goldman et al. data, and the decrease in the number of training lemmas between SIGMORPHON and Goldman et al. We begin by visualizing these relationships and running basic stats to verify them.
+Here, we define helper functions to run our correlational statistics, evaluate our fitted models, and compare models fitted to a single predictor to models fitted to multiple predictors in order to evaluate which better explains the data.
 
-## Basic Unscaled Scatter Plots
+```{r}
+# We'll use this helper function to run our stats
+correlations <- function(a, b){
+  for (m in list("pearson", "spearman", "kendall")){
+    # Supressing warnings bc we'll get them whenever there are ties 
+    suppressWarnings(res <- cor.test(a, b, method = m))
+    formatted <- sprintf("%s: %f (p = %e)", res$method, res$estimate, res$p.value)
+    print(formatted)
+  }
+}
+
+# We'll use this helper function to get information about our model
+eval_model <- function(model, df){
+  rsquared = summary(model)$r.squared
+  AIC = AIC(model)
+  results <- sprintf("R^2: %f, AIC: %f", rsquared, AIC)
+  print(results)
+  layout(matrix(c(1,2,3,4),2,2)) 
+  plot(model)
+  return(predict(model, df, se = TRUE))
+}
+
+# We'll use this helper function to compare two models 
+compare_models <- function(model_both, model_single){
+  layout(matrix(c(1,2,3,4),2,2)) 
+  plot(model_both)
+  AIC = AIC(model_both)
+  anovap = anova(model_both, model_single)$`Pr(>F)`[-1]
+  results <- sprintf("AIC: %f, ANOVA p: %f", AIC, anovap)
+  print(results)
+  vif(model_both)
+}
+```
+
+# Investigating Accuracy Drop
+
+We begin by investigating relationships between test accuracy drop (between SIGMORPHON 2020 & Goldman et al 2022) and various predictors. Exploratory analysis tells us that the following predictors have strong relationships with accuracy drop:
+
+-   **Training size:** the number of training triples in the Goldman et al. data
+
+-   **Training lemmas:** the number of unique lemmas occurring in the Goldman et al. data
+
+-   **Lemma drop:** the difference in the number of lemmas between the SIGMORPHON data and the Goldman et al. data.
+
+We begin by investigating unscaled scatter plots before fitting linear models and running statistics on the log-log scaled plots, and finally fitting non-linear models to these predictors.
+
+## Unscaled Scatter Plots
 
 #### Training Size
 
@@ -85,41 +134,9 @@ df %>%
   )
 ```
 
-## Visualization & Elementary Statistics
+## Linear Models and Correlations
 
-```{r}
-# We'll use this helper function to run our stats
-correlations <- function(a, b){
-  for (m in list("pearson", "spearman", "kendall")){
-    # Supressing warnings bc we'll get them whenever there are ties 
-    suppressWarnings(res <- cor.test(a, b, method = m))
-    formatted <- sprintf("%s: %f (p = %e)", res$method, res$estimate, res$p.value)
-    print(formatted)
-  }
-}
-
-# We'll use this helper function to get information about our model
-eval_model <- function(model, df){
-  rsquared = summary(model)$r.squared
-  AIC = AIC(model)
-  results <- sprintf("R^2: %f, AIC: %f", rsquared, AIC)
-  print(results)
-  layout(matrix(c(1,2,3,4),2,2)) 
-  plot(model)
-  return(predict(model, df, se = TRUE))
-}
-
-# We'll use this helper function to compare two models 
-compare_models <- function(model_both, model_single){
-  layout(matrix(c(1,2,3,4),2,2)) 
-  plot(model_both)
-  AIC = AIC(model_both)
-  anovap = anova(model_both, model_single)$`Pr(>F)`[-1]
-  results <- sprintf("AIC: %f, ANOVA p: %f", AIC, anovap)
-  print(results)
-  vif(model_both)
-}
-```
+From the above, we can see that the relationship between the various predictors and test accuracy drop isn't linear. However, when both axes are log-scaled, the relationship is near linear. As such, we fit linear models and run correlation statistics on the log-log scaled version.
 
 #### Training size vs. test accuracy drop
 
@@ -269,11 +286,21 @@ df %>%
 correlations(log(df$Goldman_train_lemmas), df$log_train_lemma_diff)
 ```
 
-## Pirate Stats, Linear Version 🏴‍☠️
+## Accuracy Drop Pirate Stats, Linear Version 🏴‍☠️
 
-We now have three possible predictor variables which we know have relationships with one another, so we want to figure out a way to disentangle these relationships to figure out which variable(s) predict drops in model performance. We do this by fitting linear models and examining the difference in model fit.
+We now have three possible predictor variables which we know are co-linear with one another, so we want to disentangle these relationships to determine which variable(s) best predict drops in model performance.
+
+Above, we saw that of the single-predictor linear models, test accuracy drop was best predicted by training lemmas. Using this as a starting point, we add additional predictors to the linear models to determine if any additional predictor leads to significantly better model performance, defined as follows:
+
+-   Does the AIC drop by at least 2 units (significantly better)? 
+
+-   Is the ANOVA p-value between the two models significant? (p \< 0.05)
+
+-   Is the VIF (a measure of co-linearity) low – below 3-4?
 
 #### Lemmas + Train Size
+
+We compare a model conditioned on the number of lemmas in train *and* the number of triples in train to one just conditioned on the number of lemmas.
 
 ```{r}
 lemmas_plus_train_lm = lm(log_test_acc_drop ~ log(Goldman_train_size) + log(Goldman_train_lemmas), data = df)
@@ -282,16 +309,18 @@ compare_models(lemmas_plus_train_lm, train_lemma_lm)
 
 #### Lemmas + Lemma Drop
 
+We compare a model conditioned on the number of lemmas in train *and* the lemma drop between SIGMORPHON and Goldman et al in train to one just conditioned on the number of lemmas.
+
 ```{r}
 lemmas_drop_lm = lm(log_test_acc_drop ~ log(Goldman_train_lemmas) + log_train_lemma_diff, data = df)
 compare_models(lemmas_drop_lm, train_lemma_lm)
 ```
 
-## Pirate Stats, Non-Linear Version 🏴‍☠️
+## Accuracy Drop Pirate Stats, Non-Linear Version 🏴‍☠️
 
-TODO
+Though the relationship is near-linear when we log-scale both axes, we can see from our residual plots above that there is some non-linearity remaining. As such, we train more general models using the natural cubic splines with `df = 3`.
 
-#### Training size vs. test accuracy drop
+#### Training size
 
 ```{r}
 ns_train_size_lm = lm(log_test_acc_drop ~ ns(log(Goldman_train_size), df=3), data = df)
@@ -317,7 +346,7 @@ df %>%
   geom_line(aes(x = log(Goldman_train_size), y = pred$fit), color = "black")
 ```
 
-#### Train lemmas vs. test accuracy drop
+#### Train lemmas
 
 ```{r}
 ns_train_lemma_lm = lm(log_test_acc_drop ~ ns(log(Goldman_train_lemmas), df = 3), data = df)
@@ -343,7 +372,7 @@ df %>%
   geom_line(aes(x = log(Goldman_train_lemmas), y = pred$fit), color = "black")
 ```
 
-#### Training Lemma Drop vs. Test Accuracy Drop
+#### Training Lemma Drop
 
 ```{r}
 ns_lemma_drop_lm = lm(log_test_acc_drop ~ ns(log_train_lemma_diff, df = 3), data = df)
@@ -369,6 +398,8 @@ df %>%
   geom_line(aes(x = log_train_lemma_diff, y = pred$fit), color = "black")
 ```
 
+Having trained the preliminary single-predictor models, we can once again train the more complex multi-predictor models and compare them in terms of AIC, ANOVA p-value, and VIF as above:
+
 #### Lemmas + Train Size
 
 ```{r}
@@ -383,9 +414,13 @@ ns_lemmas_drop_lm = lm(log_test_acc_drop ~ ns(log(Goldman_train_lemmas), df = 3)
 compare_models(ns_lemmas_drop_lm, ns_train_lemma_lm)
 ```
 
-# Investigating Relationships with Raw Accuracy
+# Investigating Raw Accuracy
 
-## Create a dataset that TODO
+Having investigated the relationships with accuracy drop, we now wish to understand the predictors of raw accuracy. To begin, we visualize the relationship with raw accuracy for both SIGMORPHON and Goldman et al.
+
+## Basic Visualization
+
+First, format the data for easier plotting:
 
 ```{r}
 Gold <- df %>% 
@@ -406,8 +441,6 @@ Sigm$Type = "SIGMORPHON"
 
 new_df = rbind(Gold, Sigm)
 ```
-
-## Visualize the Effects
 
 #### Training Size
 
@@ -453,9 +486,7 @@ print("-------SIGMORPHON -------")
 correlations(log(df$SIGMORPHON_train_lemmas), log(df$SIGMORPHON_test_acc + 1))
 ```
 
-## Raw Accuracy Pirate Stats, Linear Version 🏴‍☠️
-
-#### Co-Linearities
+#### Co-Linearities 
 
 ```{r}
 print("-------GOLDMAN ------")
@@ -464,7 +495,11 @@ print("-------SIGMORPHON -------")
 correlations(log(df$SIGMORPHON_train_size), log(df$SIGMORPHON_train_lemmas))
 ```
 
-#### Training Size vs. Goldman et al. Accuracy
+## Raw Accuracy Pirate Stats, Linear Version 🏴‍☠️
+
+As we did for accuracy drop, we now fit linear models to raw accuracy on the Goldman et al. data only (since there seems to be little effect for the SIGMORPHON data). We then compare the models fitted to just training size or training lemmas to the model fitted to both in the same way as above.
+
+#### Training Size
 
 ```{r}
 train_size_lm = lm(log(Goldman_test_acc + 1) ~ log(Goldman_train_size), data = df)
@@ -490,7 +525,7 @@ df %>%
   geom_line(aes(x = log(Goldman_train_size), y = pred$fit), color = "black") 
 ```
 
-#### Number of Training Lemmas vs. Goldman et al. Test Accuracy
+#### Number of Training Lemmas
 
 ```{r}
 train_lemma_lm = lm(log(Goldman_test_acc + 1) ~ log(Goldman_train_lemmas), data = df)
@@ -522,6 +557,8 @@ compare_models(lemmas_plus_train_lm, train_size_lm)
 ```
 
 ## Raw Accuracy Pirate Stats, Non-Linear Version 🏴‍☠️
+
+It's very clear from the above plots – more so than for test accuracy drop – that the relationships aren't linear even on the log-log scale. As such, we once again make use of a natural cubic spline with `df = 3` to extend these models to be non-linear and fit two single predictor models and one two-predictor model as above.
 
 #### Training Size
 
