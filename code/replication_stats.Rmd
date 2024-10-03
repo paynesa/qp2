@@ -162,6 +162,7 @@ df %>%
               fill = "grey", 
               alpha = .4) + 
   geom_line(aes(x = log(Goldman_train_size), y = pred$fit), color = "black")
+ggsave("../writeup/figs/lm_drop_size.png", dpi=500)
 
 correlations(log(df$Goldman_train_size), df$log_test_acc_drop)
 ```
@@ -190,6 +191,7 @@ df %>%
              fill = "grey", 
              alpha = .4) + 
   geom_line(aes(x = log(Goldman_train_lemmas), y = pred$fit), color = "black")
+ggsave("../writeup/figs/lm_drop_lemmas.png", dpi=500)
 
 correlations(log(df$Goldman_train_lemmas), df$log_test_acc_drop)
 ```
@@ -219,6 +221,7 @@ df %>%
              alpha = .4) + 
   geom_line(aes(x = log_train_lemma_diff, y = pred$fit), color = "black")
 
+ggsave("../writeup/figs/lm_drop_drop.png", dpi=500)
 correlations(df$log_train_lemma_diff, df$log_test_acc_drop)
 ```
 
@@ -304,6 +307,7 @@ We compare a model conditioned on the number of lemmas in train *and* the number
 
 ```{r}
 lemmas_plus_train_lm = lm(log_test_acc_drop ~ log(Goldman_train_size) + log(Goldman_train_lemmas), data = df)
+summary(lemmas_plus_train_lm)$r.squared
 compare_models(lemmas_plus_train_lm, train_lemma_lm)
 ```
 
@@ -313,6 +317,7 @@ We compare a model conditioned on the number of lemmas in train *and* the lemma 
 
 ```{r}
 lemmas_drop_lm = lm(log_test_acc_drop ~ log(Goldman_train_lemmas) + log_train_lemma_diff, data = df)
+summary(lemmas_drop_lm)$r.squared
 compare_models(lemmas_drop_lm, train_lemma_lm)
 ```
 
@@ -344,6 +349,8 @@ df %>%
               fill = "grey", 
               alpha = .4) + 
   geom_line(aes(x = log(Goldman_train_size), y = pred$fit), color = "black")
+
+ggsave("../writeup/figs/ns_drop_size.png", dpi=500)
 ```
 
 #### Train lemmas
@@ -370,6 +377,8 @@ df %>%
              fill = "grey", 
              alpha = .4) + 
   geom_line(aes(x = log(Goldman_train_lemmas), y = pred$fit), color = "black")
+
+ggsave("../writeup/figs/ns_drop_lemmas.png", dpi=500)
 ```
 
 #### Training Lemma Drop
@@ -396,6 +405,8 @@ df %>%
              fill = "grey", 
              alpha = .4) + 
   geom_line(aes(x = log_train_lemma_diff, y = pred$fit), color = "black")
+
+ggsave("../writeup/figs/ns_drop_drop.png", dpi=500)
 ```
 
 Having trained the preliminary single-predictor models, we can once again train the more complex multi-predictor models and compare them in terms of AIC, ANOVA p-value, and VIF as above:
@@ -404,6 +415,7 @@ Having trained the preliminary single-predictor models, we can once again train 
 
 ```{r}
 ns_lemmas_plus_train_lm = lm(log_test_acc_drop ~ ns(log(Goldman_train_size), df = 3) + ns(log(Goldman_train_lemmas), df = 3), data = df)
+summary(ns_lemmas_plus_train_lm)$r.squared
 compare_models(ns_lemmas_plus_train_lm, ns_train_lemma_lm)
 ```
 
@@ -411,6 +423,7 @@ compare_models(ns_lemmas_plus_train_lm, ns_train_lemma_lm)
 
 ```{r}
 ns_lemmas_drop_lm = lm(log_test_acc_drop ~ ns(log(Goldman_train_lemmas), df = 3) + ns(log_train_lemma_diff, df = 3), data = df)
+summary(ns_lemmas_drop_lm)$r.squared
 compare_models(ns_lemmas_drop_lm, ns_train_lemma_lm)
 ```
 
@@ -523,6 +536,7 @@ df %>%
               fill = "grey", 
               alpha = .4) + 
   geom_line(aes(x = log(Goldman_train_size), y = pred$fit), color = "black") 
+ggsave("../writeup/figs/lm_raw_size.png", dpi=500)
 ```
 
 #### Number of Training Lemmas
@@ -538,20 +552,25 @@ df %>%
   theme_bw() + 
   xlab("Goldman et al. number of training lemmas, log scale") + 
   ylab("Goldman et al. test accuracy, log scale") + 
-  ggtitle("Goldman et al. test accuracy vs. number of training lemmas") + 
+  ggtitle("Goldman et al. test accuracy vs. training lemmas") + 
   theme(plot.title = element_text(hjust=0.5, size=18), 
         axis.title.y = element_text(size=14),
         axis.title.x = element_text(size=14),
   )  + 
-  geom_ribbon(aes(x = log(Goldman_train_lemmas), ymin = pred$fit - 2 * pred$se.fit, ymax = pred$fit + 2 * pred$se.fit), fill = "grey", alpha = .4) + 
+  geom_ribbon(aes(x = log(Goldman_train_lemmas), 
+                  ymin = pred$fit - 2 * pred$se.fit, 
+                  ymax = pred$fit + 2 * pred$se.fit), 
+              fill = "grey", 
+              alpha = .4) + 
   geom_line(aes(x = log(Goldman_train_lemmas), y = predict(train_lemma_lm)), color = "black")
-
+ggsave("../writeup/figs/lm_raw_lemmas.png", dpi=500)
 ```
 
 #### Training Size & Number of Training Lemmas
 
 ```{r}
 lemmas_plus_train_lm <- lm(log(Goldman_test_acc + 1) ~ log(Goldman_train_size) + log(Goldman_train_lemmas), data = df)
+summary(lemmas_plus_train_lm)$r.squared
 compare_models(lemmas_plus_train_lm, train_lemma_lm)
 compare_models(lemmas_plus_train_lm, train_size_lm)
 ```
@@ -583,6 +602,7 @@ df %>%
               fill = "grey", 
               alpha = .4) + 
   geom_line(aes(x = log(Goldman_train_size), y = pred$fit), color = "black")
+ggsave("../writeup/figs/ns_raw_size.png", dpi=500)
 ```
 
 #### Training Lemmas 
@@ -597,7 +617,7 @@ df %>%
   theme_bw() + 
   xlab("Goldman et al. number of training lemmas, log scale") + 
   ylab("Goldman et al. test accuracy, log scale") + 
-  ggtitle("Goldman et al. test accuracy vs. number of training lemmas") + 
+  ggtitle("Goldman et al. test accuracy vs. training lemmas") + 
   theme(plot.title = element_text(hjust=0.5, size=18), 
         axis.title.y = element_text(size=14),
         axis.title.x = element_text(size=14),
@@ -608,12 +628,15 @@ df %>%
               fill = "grey", 
               alpha = .4) + 
   geom_line(aes(x = log(Goldman_train_lemmas), y = pred$fit), color = "black")
+
+ggsave("../writeup/figs/ns_raw_lemmas.png", dpi=500)
 ```
 
 #### Training Size + Training Lemmas
 
 ```{r}
 ns_lemmas_plus_train_lm <- lm(log(Goldman_test_acc + 1) ~ ns(log(Goldman_train_size), df = 3) + ns(log(Goldman_train_lemmas), df = 3), data = df)
+summary(ns_lemmas_plus_train_lm)$r.squared
 compare_models(ns_lemmas_plus_train_lm, ns_train_lemma)
 compare_models(ns_lemmas_plus_train_lm, ns_train_size_lm)
 ```
