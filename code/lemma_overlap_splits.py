@@ -51,7 +51,7 @@ def validate(train, ftune, test, overlap_item, printoverlap=False):
    other = [x for x in (LEMMA, FEATS)if x != overlap_item][0]
    train_overlap2, test_overlap2 = compute_overlap(train_all, testset, overlap_item = other, printoverlap = False)
    print(f"\t\t{'Lemma' if other == LEMMA else 'Feature'} overlap in test: {test_overlap2}")
-   return test_overlap
+   return test_overlap, test_overlap2
 
 
 def read_corpus(train_path, gold_path, overlap_item):
@@ -165,6 +165,7 @@ def main(train_path, gold_path, trainsize, testsize, overlap_item, overlap_ratio
       os.makedirs(f"{outdir}/{seed}")
    # Store languages which don't achieve the overlap ratio
    languages_with_lower_overlap = []
+   feature_overlaps = []
    # Consider languages family-by-family 
    for family in [f for f in os.listdir(train_path) if "." not in f]:
       print(f"Splitting {family} family...")
@@ -177,17 +178,21 @@ def main(train_path, gold_path, trainsize, testsize, overlap_item, overlap_ratio
             sizes = np.asarray([len(v) for v in line_dict.values()])
             print(f"\t\tMean size: {np.mean(sizes) :.3f} (stdev: {np.std(sizes) :.3f}, n: {len(sizes)})")
             train, ftune, test = controlled_overlap_sample(line_dict, lines, trainsize, testsize, ftuneprop, overlap_item, overlap_ratio)
-            test_overlap = validate(train, ftune, test, overlap_item, printoverlap=True)
+            test_overlap, ft_overlap = validate(train, ftune, test, overlap_item, printoverlap=True)
             # If we achieve the desired overlap, write out the result. Otherwise, warn the user
             if test_overlap < overlap_ratio:
                languages_with_lower_overlap.append((lang, test_overlap))
             else:
+               feature_overlaps.append(ft_overlap)
                print(f"\t\tWriting splits to {outdir}")
                write_splits(outdir, family.lower(), lang, seed, train, ftune, test)
    print(f"Finished splitting. The following languages didn't reach {overlap_ratio} overlap:")
    for language, overlap in languages_with_lower_overlap:
       print(f"\t{language} ({overlap} overlap)")
+   feature_overlaps = np.asarray(feature_overlaps)
+   print(f"Mean feature overlap: {np.mean(feature_overlaps) :.3f} (stdev: {np.std(feature_overlaps) :.3f})")
    print("Done.")
+
 
 
 if __name__ == "__main__":
