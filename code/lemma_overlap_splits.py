@@ -106,12 +106,12 @@ def subsample(line_dict, triples, overlappable, numsample, overlap_ratio, overla
    return sampled, remaining
 
 
-def controlled_overlap_sample(line_dict, triples, trainsize, testsize, ftuneprop, overlap_item, overlap_ratio):
+def controlled_overlap_sample(line_dict, triples, trainsize, testsize, ftuneprop, overlap_item, overlap_ratio, start1):
    """This function executes overlap-aware sampling"""
    all_items = sorted(line_dict.keys())
    random.shuffle(triples)
    random.shuffle(all_items)
-   partition = int(overlap_ratio * len(all_items))
+   partition = 1 if start1 else int(overlap_ratio * len(all_items))
    origpartition = partition
 
    # Iteratively increase the partition until we can sample enough 
@@ -155,7 +155,7 @@ def controlled_overlap_sample(line_dict, triples, trainsize, testsize, ftuneprop
 
 
 
-def main(train_path, gold_path, trainsize, testsize, overlap_item, overlap_ratio, ftuneprop, seed, outdir):
+def main(train_path, gold_path, trainsize, testsize, overlap_item, overlap_ratio, ftuneprop, seed, outdir, start1):
    """The main function to execute the splitting"""
    print(f"Training size: {trainsize} (ftune subset: {ftuneprop*trainsize}), test size: {testsize}. Seed = {seed}")
    # Set the random seed for replicability 
@@ -166,6 +166,7 @@ def main(train_path, gold_path, trainsize, testsize, overlap_item, overlap_ratio
    # Store languages which don't achieve the overlap ratio
    languages_with_lower_overlap = []
    feature_overlaps = []
+   numbers_unique = []
    # Consider languages family-by-family 
    for family in [f for f in os.listdir(train_path) if "." not in f]:
       print(f"Splitting {family} family...")
@@ -177,7 +178,9 @@ def main(train_path, gold_path, trainsize, testsize, overlap_item, overlap_ratio
             print(f"\tSplitting {lang} ({len(lines)} triples)...")
             sizes = np.asarray([len(v) for v in line_dict.values()])
             print(f"\t\tMean size: {np.mean(sizes) :.3f} (stdev: {np.std(sizes) :.3f}, n: {len(sizes)})")
-            train, ftune, test = controlled_overlap_sample(line_dict, lines, trainsize, testsize, ftuneprop, overlap_item, overlap_ratio)
+            train, ftune, test = controlled_overlap_sample(line_dict, lines, trainsize, testsize, ftuneprop, overlap_item, overlap_ratio, start1)
+            number_unique = set([x[overlap_item] for x in train])
+            numbers_unique.append(len(number_unique)) 
             test_overlap, ft_overlap = validate(train, ftune, test, overlap_item, printoverlap=True)
             # If we achieve the desired overlap, write out the result. Otherwise, warn the user
             if test_overlap < overlap_ratio:
@@ -191,6 +194,7 @@ def main(train_path, gold_path, trainsize, testsize, overlap_item, overlap_ratio
       print(f"\t{language} ({overlap} overlap)")
    feature_overlaps = np.asarray(feature_overlaps)
    print(f"Mean feature overlap: {np.mean(feature_overlaps) :.3f} (stdev: {np.std(feature_overlaps) :.3f})")
+   print(f"Mean overlap items in train: {np.mean(numbers_unique) :.3f} (stdev: {np.std(numbers_unique) :.3f})")
    print("Done.")
 
 
@@ -209,6 +213,7 @@ if __name__ == "__main__":
     parser.add_argument("--overlap_item",  help = "The item whose overlap should be controlled", default="LEMMA")
     parser.add_argument("--ftune_prop", help = "The proportion of items in train to be subsampled for ftune", type=float, default = 0.125)
     parser.add_argument("--seed", help = "The random seed", type = int, default = 1)
+    parser.add_argument('--start1', action=argparse.BooleanOptionalAction, default = False)
     args = parser.parse_args()
 
     # Parse the arguments and call the main function
@@ -228,7 +233,8 @@ if __name__ == "__main__":
       args.overlap_ratio, 
       args.ftune_prop,
       args.seed,
-      args.outdir
+      args.outdir,
+      args.start1
       )
 
 

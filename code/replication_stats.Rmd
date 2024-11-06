@@ -5,9 +5,9 @@ output: html_notebook
 
 This notebook contains code to execute plotting and exploratory statistics for replicating Goldman et al. (2022) on a subset of 3 language families: Uralic, Romance, and Niger-Congo. We begin by investigating predictors of accuracy drop between SIGMORPHON (2020) and Goldman et al. (2022), then investigate the relationship between raw accuracy on the Goldman et al. test data and various predictors.
 
-# Setup 
+# Setup
 
-#### Load Libaries 
+#### Load Libaries
 
 ```{r}
 library(ggplot2)
@@ -31,7 +31,7 @@ df$log_test_acc_drop = -1*log((-1*df$test_acc_drop)+1)
 df$log_train_lemma_diff = -1*log(-1*df$train_lemma_diff_raw)
 ```
 
-#### Define Helper Functions 
+#### Define Helper Functions
 
 Here, we define helper functions to run our correlational statistics, evaluate our fitted models, and compare models fitted to a single predictor to models fitted to multiple predictors in order to evaluate which better explains the data.
 
@@ -499,7 +499,7 @@ print("-------SIGMORPHON -------")
 correlations(log(df$SIGMORPHON_train_lemmas), log(df$SIGMORPHON_test_acc + 1))
 ```
 
-#### Co-Linearities 
+#### Co-Linearities
 
 ```{r}
 print("-------GOLDMAN ------")
@@ -605,7 +605,7 @@ df %>%
 ggsave("../writeup/figs/ns_raw_size.png", dpi=500)
 ```
 
-#### Training Lemmas 
+#### Training Lemmas
 
 ```{r}
 ns_train_lemma = lm(log(Goldman_test_acc + 1) ~ ns(log(Goldman_train_lemmas), df = 3), data = df)

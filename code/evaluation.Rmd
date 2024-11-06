@@ -1,0 +1,100 @@
+---
+title: "Analysis of Results"
+output: html_notebook
+---
+
+# Setup
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+library(car)
+library(mgcv)
+require(splines)
+```
+
+```{r}
+# Read in the results data 
+res <- read.csv("results/chr-trm/res.csv")
+res$Language <- res$X 
+res$Family = str_to_title(str_replace(res$family, "_", " "))
+
+res$seen_diff_t <- res$unseen_pct_t - res$seen_pct_t
+res$seen_diff_f <- res$unseen_pct_f - res$seen_pct_f
+res$train_diff_t <- res$untrain_pct_t - res$train_pct_t
+res$train_diff_f <- res$untrain_pct_f - res$train_pct_f
+
+res_df <- res %>% 
+  select(c(Family, Language, seen_diff_t, seen_diff_f, train_diff_t, train_diff_f, seen_lemmas, train_lemmas)) %>%
+  arrange(Family)
+```
+
+```{r}
+res_df %>% 
+  ggplot(aes(x=Family, y = train_diff_f, fill=Family)) + 
+  geom_boxplot(alpha=0.7) +
+  theme_bw() +
+  ylim(-100, 10) +
+  ggtitle("Wu et al seed 1 results") + 
+  ylab("Drop in performance from seen to unseen lemmas") + 
+  theme(plot.title = element_text(hjust=0.5, size=16), 
+        )
+```
+
+```{r}
+for (f in unique(res$Family)){
+  temp <- res %>% filter(Family == f)
+  mean <- mean(temp$train_diff_f)
+  std <- sd(temp$train_diff_f)
+  out <- sprintf("%s: %f (%f)", f, mean, std)
+  print(out)
+}
+```
+
+```{r}
+
+```
+
+```{r}
+res_df %>% 
+  ggplot(aes(x = log(train_lemmas), y = log(-1*train_diff_f + 10))) + 
+  geom_point(aes(color=Family), size=3, alpha = 0.6) + 
+  theme_bw() +
+  stat_smooth(method="lm", color="grey")
+```
+
+```{out <- sprintf("Overall: %f (%f)", mean(res$train_diff_f), sd(res$train_diff_f))}
+print(out)
+```
+
+```{r}
+# Read in the Goldman replication data 
+rep <- read.csv("replication/replication_complete.csv")
+rep$Family = str_to_title(str_replace(rep$Family, "_", " "))
+rep_df <- rep %>% 
+  select(c(Family, Language, test_acc_drop))
+```
+
+```{r}
+rep_df %>% 
+  ggplot(aes(x=Family, y = test_acc_drop, fill=Family)) + 
+  geom_boxplot(alpha=0.7) +
+  theme_bw() + 
+  ylim(-100, 10) + 
+  ggtitle("Goldman et al. replication results") + 
+  ylab("SIGMORPHON to Goldman drop") + 
+  theme(plot.title = element_text(hjust=0.5, size=16), 
+        )
+```
+
+```{r}
+for (f in unique(rep$Family)){
+  temp <- rep %>% filter(Family == f)
+  mean <- mean(temp$test_acc_drop)
+  std <- sd(temp$test_acc_drop)
+  out <- sprintf("%s: %f (%f)", f, mean, std)
+  print(out)
+}
+out <- sprintf("Overall: %f (%f)", mean(rep$test_acc_drop), sd(rep$test_acc_drop))
+print(out)
+```
