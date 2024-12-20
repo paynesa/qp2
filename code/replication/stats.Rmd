@@ -1,0 +1,910 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Replication of Goldman et al.
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+library(car)
+library(mgcv)
+require(gam)
+require(lmtest)
+require(lme4)
+```
+
+## Load in & Preprocess the Data
+
+```{r}
+df<-read.csv("replication_final.csv")
+df$Family = str_to_title(str_replace(df$Family, "_", " "))
+
+CHRTRM <- df %>% 
+  select(c(Language,
+           Family,
+           SIGMORPHON_acc = CHR.TRM_SIGMORPHON_test_acc, 
+           Goldman_acc = CHR.TRM_Goldman_test_acc, 
+           Goldman_train_size, 
+           Goldman_train_lemmas,
+           train_lemma_diff_raw, 
+           SIGMORPHON_train_size, 
+           SIGMORPHON_train_lemmas
+           ))
+
+CHRTRM$Model = "CHR-TRM"
+
+
+
+CLUZH <- df %>% 
+  select(c(Language,
+           Family,
+           SIGMORPHON_acc = CLUZH_SIGMORPHON_test_acc, 
+           Goldman_acc = CLUZH_Goldman_test_acc, 
+           Goldman_train_size, 
+           Goldman_train_lemmas,
+           train_lemma_diff_raw,
+           SIGMORPHON_train_size,
+           SIGMORPHON_train_lemmas
+           ))
+
+
+CLUZH$Model = "CLUZH"
+
+
+
+DeepSpin <- df %>% 
+  select(c(Language,
+           Family,
+           SIGMORPHON_acc = DeepSpin_SIGMORPHON_test_acc, 
+           Goldman_acc = DeepSpin_Goldman_test_acc, 
+           Goldman_train_size, 
+           Goldman_train_lemmas,
+           train_lemma_diff_raw,
+           SIGMORPHON_train_size,
+           SIGMORPHON_train_lemmas
+           ))
+
+DeepSpin$Model = "DeepSpin"
+
+
+
+all_data <- rbind(CLUZH, CHRTRM, DeepSpin)
+
+
+
+all_data$acc_drop = all_data$Goldman_acc - all_data$SIGMORPHON_acc
+all_data$log_acc_drop <- -1*log(-1*(all_data$acc_drop - 4))
+max(all_data$acc_drop)
+```
+
+```{r}
+# We'll use this helper function to run our stats
+correlations <- function(a, b){
+  for (m in list("pearson", "spearman", "kendall")){
+    # Supressing warnings bc we'll get them whenever there are ties 
+    suppressWarnings(res <- cor.test(a, b, method = m))
+    formatted <- sprintf("%s: %f (p = %f)", res$method, res$estimate, res$p.value)
+    print(formatted)
+  }
+}
+
+# We'll use this helper function to get information about our model
+eval_model <- function(model, df){
+  rsquared = summary(model)$r.squared
+  AIC = AIC(model)
+  results <- sprintf("R^2: %f, AIC: %f", rsquared, AIC)
+  print(results)
+  layout(matrix(c(1,2,3,4),2,2)) 
+  plot(model)
+  return(predict(model, df, se = TRUE))
+}
+
+# We'll use this helper function to compare two models 
+compare_models <- function(model_both, model_single){
+  layout(matrix(c(1,2,3,4),2,2)) 
+  plot(model_both)
+  AIC = AIC(model_both)
+  anovap = anova(model_both, model_single)$`Pr(>F)`[-1]
+  results <- sprintf("AIC: %f, ANOVA p: %f", AIC, anovap)
+  print(results)
+  vif(model_both)
+}
+
+```
+
+# Raw Accuracy
+
+## Initial Scatters
+
+```{r, fig.width = 12, fig.height=4}
+
+SIGMORPHON <- all_data %>% 
+  select(c(Model, Family, train_size=SIGMORPHON_train_size, train_lemmas=SIGMORPHON_train_lemmas, test_acc = SIGMORPHON_acc))
+SIGMORPHON$Data <- "SIGMORPHON" 
+
+Goldman <- all_data %>%
+  select(c(Model, Family, train_size=Goldman_train_size, train_lemmas=Goldman_train_lemmas, test_acc = Goldman_acc))
+Goldman$Data <- "Goldman et al."
+
+rbind(SIGMORPHON, Goldman) %>%
+  ggplot(aes(log(train_size), log(test_acc), color=Data)) + 
+  facet_grid(~factor(Model, levels=c("CHR-TRM", "DeepSpin", "CLUZH")))+
+  scale_color_manual(values=c("turquoise", "purple")) +
+  geom_point(aes(shape=Family), size=3, alpha=0.6) + 
+  theme_bw() + 
+  xlab("Training Size, Log Scale") + 
+  ylab("Test Accuracy, Log Scale") + 
+  ggtitle("Test Accuracy vs. Training Size") + 
+  theme(plot.title = element_text(hjust=0.5, size=16)) 
+
+ggsave("figures/train_size_accuracy.pdf", device="pdf", width = 12, height=4)
+
+```
+
+```{r, fig.width = 12, fig.height=4}
+rbind(SIGMORPHON, Goldman) %>%
+  ggplot(aes(log(train_lemmas), log(test_acc), color=Data)) + 
+  facet_grid(~factor(Model, levels=c("CHR-TRM", "DeepSpin", "CLUZH")))+
+  scale_color_manual(values=c("turquoise", "purple")) +
+  geom_point(aes(shape=Family), size=3, alpha=0.6) + 
+  theme_bw() + 
+  xlab("Training Lemmas, Log Scale") + 
+  ylab("Test Accuracy, Log Scale") + 
+  ggtitle("Test Accuracy vs. Training Lemmas") + 
+  theme(plot.title = element_text(hjust=0.5, size=16)) 
+
+ggsave("figures/train_lemmas_accuracy.pdf", device="pdf", width = 12, height=4)
+```
+
+## Basic Correlational Stats
+
+```{r}
+correlations(log(CHRTRM$Goldman_train_size), log(CHRTRM$Goldman_acc + 1))
+sprintf("")
+correlations(log(DeepSpin$Goldman_train_size), log(DeepSpin$Goldman_acc + 1))
+sprintf("")
+correlations(log(CLUZH$Goldman_train_size), log(CLUZH$Goldman_acc + 1))
+```
+
+```{r}
+correlations(log(CHRTRM$SIGMORPHON_train_size), log(CHRTRM$SIGMORPHON_acc+1))
+sprintf("")
+correlations(log(DeepSpin$SIGMORPHON_train_size), log(DeepSpin$SIGMORPHON_acc+1))
+sprintf("")
+correlations(log(CLUZH$SIGMORPHON_train_size), log(CLUZH$SIGMORPHON_acc+1))
+```
+
+```{r}
+correlations(log(CHRTRM$Goldman_train_lemmas), log(CHRTRM$Goldman_acc+1))
+sprintf("")
+correlations(log(DeepSpin$Goldman_train_lemmas), log(DeepSpin$Goldman_acc+1))
+sprintf("")
+correlations(log(CLUZH$Goldman_train_lemmas), log(CLUZH$Goldman_acc+1))
+```
+
+```{r}
+correlations(log(CHRTRM$SIGMORPHON_train_lemmas), log(CHRTRM$SIGMORPHON_acc+1))
+sprintf("")
+correlations(log(DeepSpin$SIGMORPHON_train_lemmas), log(DeepSpin$SIGMORPHON_acc+1))
+sprintf("")
+correlations(log(CLUZH$SIGMORPHON_train_lemmas), log(CLUZH$SIGMORPHON_acc+1))
+```
+
+## GLMer Attempt
+
+```{r}
+data <- rbind(SIGMORPHON, Goldman)
+data$scaled_acc <- (data$test_acc/100 * 203 + .5) / 204
+
+
+model <- glmer(scaled_acc ~ log(train_lemmas) + log(train_size) + (1|Model)  + ( train_size + train_lemmas |Family) + (train_lemmas |Data), data=data, family=binomial)
+summary(model)
+```
+
+## Beta Regression
+
+```{r}
+rbind(CLUZH, CHRTRM, DeepSpin) %>%
+  ggplot(aes(x = Goldman_scaled_acc, color=Model)) + 
+  geom_density(aes(fill= Model), alpha = 0.5) + 
+  scale_color_manual(values=c("purple", "gold", "turquoise")) +
+  scale_fill_manual(values=c("purple", "gold", "turquoise")) +
+  theme_bw() + 
+  ylab("Density") + 
+  xlab("Goldman et al. Test Accuracy") + 
+  ggtitle("Density of Goldman et al. Test Accuracy") + 
+  theme(plot.title = element_text(hjust=0.5, size=16)) 
+
+ggsave("figures/accuracy_distribution.pdf", device="pdf", width = 8, height=5)
+```
+
+```{r}
+CHRTRM$Goldman_scaled_acc <- (CHRTRM$Goldman_acc/100 * 33 + .5) / 34
+
+size_model = gam(Goldman_scaled_acc ~ log(Goldman_train_size), family=betar(link="logit"), data = CHRTRM)
+summary(size_model)
+res <- predict(size_model, newdata = CHRTRM, se.fit = TRUE, type = "response")
+CHRTRM$size_fit <- res$fit
+CHRTRM$size_se <- res$se.fit
+
+
+lemma_model = gam(Goldman_scaled_acc ~ log(Goldman_train_lemmas), family=betar(link="logit"), data = CHRTRM)
+res <- predict(lemma_model, newdata = CHRTRM, se.fit = TRUE, type = "response")
+CHRTRM$lemma_fit <- res$fit
+CHRTRM$lemma_se <- res$se.fit
+summary(lemma_model)
+
+both_model <- gam(Goldman_scaled_acc ~ log(Goldman_train_lemmas) + log(Goldman_train_size), family=betar(link="logit"), data = CHRTRM)
+summary(both_model)
+
+AIC(size_model)
+AIC(lemma_model)
+AIC(both_model)
+
+
+BIC(size_model)
+BIC(lemma_model)
+BIC(both_model)
+
+size_model$coefficients
+lemma_model$coefficients
+```
+
+```{r}
+DeepSpin$Goldman_scaled_acc <- (DeepSpin$Goldman_acc/100 * 33 + .5) / 34
+
+size_model = gam(Goldman_scaled_acc ~ log(Goldman_train_size), family=betar(link="logit"), data = DeepSpin)
+res <- predict(size_model, newdata = DeepSpin, se.fit = TRUE, type = "response")
+summary(size_model)
+DeepSpin$size_fit <- res$fit
+DeepSpin$size_se <- res$se.fit
+
+lemma_model = gam(Goldman_scaled_acc ~ log(Goldman_train_lemmas), family=betar(link="logit"), data = DeepSpin)
+res <- predict(lemma_model, newdata = DeepSpin, se.fit = TRUE, type = "response")
+summary(lemma_model)
+DeepSpin$lemma_fit <- res$fit
+DeepSpin$lemma_se <- res$se.fit
+
+both_model <- gam(Goldman_scaled_acc ~ log(Goldman_train_size) + log(Goldman_train_lemmas), family=betar(link="logit"), data = DeepSpin)
+summary(both_model)
+
+AIC(size_model)
+AIC(lemma_model)
+AIC(both_model)
+
+
+BIC(size_model)
+BIC(lemma_model)
+BIC(both_model)
+
+size_model$coefficients
+lemma_model$coefficients
+```
+
+```{r}
+CLUZH$Goldman_scaled_acc <- (CLUZH$Goldman_acc/100 * 33 + .5) / 34
+
+size_model = gam(Goldman_scaled_acc ~ log(Goldman_train_size), family=betar(link="logit"), data = CLUZH)
+res <- predict(size_model, newdata = CLUZH, se.fit = TRUE, type = "response")
+CLUZH$size_fit <- res$fit
+CLUZH$size_se <- res$se.fit
+summary(size_model)
+
+lemma_model = gam(Goldman_scaled_acc ~ log(Goldman_train_lemmas), family=betar(link="logit"), data = CLUZH)
+res <- predict(lemma_model, newdata = CLUZH, se.fit = TRUE, type = "response")
+CLUZH$lemma_fit <- res$fit
+CLUZH$lemma_se <- res$se.fit
+summary(lemma_model)
+
+both_model <- gam(Goldman_scaled_acc ~ log(Goldman_train_size) + log(Goldman_train_lemmas), family=betar(link="logit"), data = CLUZH)
+summary(both_model)
+
+
+AIC(size_model)
+AIC(lemma_model)
+AIC(both_model)
+
+
+BIC(size_model)
+BIC(lemma_model)
+BIC(both_model)
+
+size_model$coefficients
+lemma_model$coefficients
+```
+
+```{r, fig.width = 12, fig.height=4}
+rbind(CLUZH, CHRTRM, DeepSpin) %>% 
+  ggplot(aes(Goldman_train_size, Goldman_scaled_acc)) + 
+  geom_point(aes(color=Family), size = 3, alpha = 0.6) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  facet_grid(~factor(Model, levels=c("CHR-TRM", "DeepSpin", "CLUZH"))) + 
+  geom_line(aes(Goldman_train_size, size_fit)) + 
+  geom_ribbon(aes(x = Goldman_train_size, 
+                  ymin = size_fit - 2 * size_se,
+                  ymax = size_fit + 2 * size_se,
+                  ), fill ="grey",
+                  alpha = 0.4) + 
+  theme_bw() + 
+  xlab("Goldman Training Size") + 
+  ylab("Accuracy") + 
+  ggtitle("Training Size vs. Accuracy, Goldman et al. Data") + 
+  theme(plot.title = element_text(hjust=0.5, size=16)) 
+
+ggsave("figures/train_size_beta.pdf", device="pdf", width = 12, height=4)
+```
+
+```{r, fig.width = 12, fig.height=4}
+rbind(CLUZH, CHRTRM, DeepSpin) %>% 
+  ggplot(aes(Goldman_train_lemmas, Goldman_scaled_acc)) + 
+  geom_point(aes(color=Family), size = 3, alpha = 0.6) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  facet_grid(~factor(Model, levels=c("CHR-TRM", "DeepSpin", "CLUZH"))) + 
+  geom_line(aes(Goldman_train_lemmas, lemma_fit)) + 
+  geom_ribbon(aes(x = Goldman_train_lemmas, 
+                  ymin = lemma_fit - 2 * lemma_se,
+                  ymax = lemma_fit + 2 * lemma_se,
+                  ), fill ="grey",
+                  alpha = 0.4) + 
+  theme_bw() + 
+  xlab("Goldman Training Lemmas") + 
+  ylab("Accuracy") + 
+  ggtitle("Training Lemmas vs. Accuracy, Goldman et al. Data") + 
+  theme(plot.title = element_text(hjust=0.5, size=16)) 
+
+#ggsave("figures/train_lemmas_beta.pdf", device="pdf", width = 12, height=4)
+```
+
+# Accuracy Drop
+
+## Initial Visualization
+
+### Raw Plots
+
+```{r, fig.width = 9, fig.height=3}
+all_data %>% 
+  ggplot(aes(x = Goldman_train_size, y = acc_drop)) + 
+  facet_grid(~factor(Model, levels=c("CHR-TRM", "DeepSpin", "CLUZH"))) +
+  geom_point(aes(color=Family), size=3, alpha = 0.6) + 
+  theme_bw() + 
+  scale_color_manual(values=c("purple","turquoise", "gold")) +
+  theme(plot.title = element_text(hjust=0.5, size=16)) +
+  xlab("Goldman et al. Training Size") + 
+  ylab("Accuracy Drop") + 
+  ggtitle("Training Size vs. Accuracy Drop") 
+```
+
+```{r, fig.width = 9, fig.height=3}
+all_data %>% 
+  ggplot(aes(x = Goldman_train_lemmas, y = acc_drop)) + 
+  facet_grid(~factor(Model, levels=c("CHR-TRM", "DeepSpin", "CLUZH"))) +
+  geom_point(aes(color=Family), size=3, alpha = 0.6) + 
+  theme_bw() + 
+  scale_color_manual(values=c("purple","turquoise", "gold")) +
+  theme(plot.title = element_text(hjust=0.5, size=16)) +
+  xlab("Goldman et al. Training Lemmas") + 
+  ylab("Accuracy Drop") + 
+  ggtitle("Training Lemmas vs. Accuracy Drop")
+```
+
+```{r, fig.width = 9, fig.height=3}
+all_data %>% 
+  ggplot(aes(x = train_lemma_diff_raw, y = acc_drop)) + 
+  facet_grid(~factor(Model, levels=c("CHR-TRM", "DeepSpin", "CLUZH"))) +
+  geom_point(aes(color=Family), size=3, alpha = 0.6) + 
+  theme_bw() + 
+  scale_color_manual(values=c("purple","turquoise", "gold")) +
+  theme(plot.title = element_text(hjust=0.5, size=16)) +
+  xlab("Drop in the Number of Training Lemmas") + 
+  ylab("Accuracy Drop") + 
+  ggtitle("Training Lemma Drop vs. Accuracy Drop")
+```
+
+### Log-Log Plots and LM Fit Lines
+
+```{r, fig.width = 9, fig.height=3}
+all_data %>% 
+  ggplot(aes(x = log(Goldman_train_size), y = log_acc_drop)) + 
+  facet_grid(~factor(Model, levels=c("CHR-TRM", "DeepSpin", "CLUZH"))) +
+  geom_point(aes(color=Family), size=3, alpha = 0.6) + 
+  theme_bw() + 
+  scale_color_manual(values=c("purple","turquoise", "gold")) +
+  theme(plot.title = element_text(hjust=0.5, size=16)) +
+  xlab("Goldman et al. Training Size, Log Scale") + 
+  ylab("Accuracy Drop, Log Scale") + 
+  ggtitle("Training Size vs. Accuracy Drop") + 
+  stat_smooth(method="lm", color="grey")
+```
+
+```{r, fig.width = 9, fig.height=3}
+all_data %>% 
+  ggplot(aes(x = log(Goldman_train_lemmas), y = log_acc_drop)) + 
+  facet_grid(~factor(Model, levels=c("CHR-TRM", "DeepSpin", "CLUZH"))) +
+  geom_point(aes(color=Family), size=3, alpha = 0.6) + 
+  theme_bw() + 
+  scale_color_manual(values=c("purple","turquoise", "gold")) +
+  theme(plot.title = element_text(hjust=0.5, size=16)) +
+  xlab("Goldman et al. Training Lemmas, Log Scale") + 
+  ylab("Accuracy Drop, Log Scale") + 
+  ggtitle("Training Lemmas vs. Accuracy Drop") + 
+  stat_smooth(method="lm", color="grey")
+```
+
+```{r, fig.width = 9, fig.height=3}
+all_data %>% 
+  ggplot(aes(x = log(-1*train_lemma_diff_raw), y = log_acc_drop)) + 
+  facet_grid(~factor(Model, levels=c("CHR-TRM", "DeepSpin", "CLUZH"))) +
+  geom_point(aes(color=Family), size=3, alpha = 0.6) + 
+  theme_bw() + 
+  scale_color_manual(values=c("purple","turquoise", "gold")) +
+  theme(plot.title = element_text(hjust=0.5, size=16)) +
+  xlab("Drop in Training Lemmas, Log Scale") + 
+  ylab("Accuracy Drop, Log Scale") + 
+  ggtitle("Lemma Drop vs. Accuracy Drop") + 
+  stat_smooth(method="lm", color="grey")
+```
+
+## Basic Correlational Stats
+
+```{r}
+CHRTRM$scaled_drop <- -1*(CHRTRM$Goldman_acc - CHRTRM$SIGMORPHON_acc - 2)/100
+DeepSpin$scaled_drop <- -1*(DeepSpin$Goldman_acc - DeepSpin$SIGMORPHON_acc - 2)/100
+CLUZH$scaled_drop <- -1*(CLUZH$Goldman_acc - CLUZH$SIGMORPHON_acc - 4)/100
+
+correlations(log(CHRTRM$Goldman_train_size), log(CHRTRM$scaled_drop))
+sprintf("")
+correlations(log(DeepSpin$Goldman_train_size), log(DeepSpin$scaled_drop))
+sprintf("")
+correlations(log(CLUZH$Goldman_train_size), log(CLUZH$scaled_drop))
+```
+
+```{r}
+correlations(log(CHRTRM$Goldman_train_lemmas), log(CHRTRM$scaled_drop))
+sprintf("")
+correlations(log(DeepSpin$Goldman_train_lemmas), log(DeepSpin$scaled_drop))
+sprintf("")
+correlations(log(CLUZH$Goldman_train_lemmas), log(CLUZH$scaled_drop))
+```
+
+```{r}
+correlations(log(-1*CHRTRM$train_lemma_diff_raw), log(CHRTRM$scaled_drop))
+sprintf("")
+correlations(log(-1*DeepSpin$train_lemma_diff_raw), log(DeepSpin$scaled_drop))
+sprintf("")
+correlations(log(-1*CLUZH$train_lemma_diff_raw), log(CLUZH$scaled_drop))
+```
+
+## Beta Regression
+
+```{r}
+rbind(CLUZH, CHRTRM, DeepSpin) %>%
+  ggplot(aes(x = scaled_drop, color=Model)) + 
+  geom_density(aes(fill= Model), alpha = 0.5) + 
+  scale_color_manual(values=c("purple", "gold", "turquoise")) +
+  scale_fill_manual(values=c("purple", "gold", "turquoise")) +
+  theme_bw() + 
+  ylab("Density") + 
+  xlab("Accuracy Drop") + 
+  ggtitle("Density of Accuracy Drop") + 
+  theme(plot.title = element_text(hjust=0.5, size=16)) 
+
+ggsave("figures/drop_distribution.pdf", device="pdf", width = 8, height=5)
+```
+
+```{r}
+size_model = gam(scaled_drop ~ log(Goldman_train_size), family=betar(link="logit"), data = CHRTRM)
+
+summary(size_model)
+
+res <- predict(size_model, newdata = CHRTRM, se.fit = TRUE, type="response")
+CHRTRM$size_fit <- res$fit
+CHRTRM$size_se <- res$se.fit
+
+lemma_model = gam(scaled_drop ~ log(Goldman_train_lemmas), family=betar(link="logit"), data = CHRTRM)
+
+summary(lemma_model)
+
+res <- predict(lemma_model, newdata = CHRTRM, se.fit = TRUE, type="response")
+CHRTRM$lemma_fit <- res$fit
+CHRTRM$lemma_se <- res$se.fit
+
+drop_model = gam(scaled_drop ~ log(-1*train_lemma_diff_raw), family=betar(link="logit"), data = CHRTRM)
+
+summary(drop_model)
+
+res <- predict(drop_model, newdata = CHRTRM, se.fit = TRUE, type="response")
+CHRTRM$drop_fit <- res$fit
+CHRTRM$drop_se <- res$se.fit
+
+both_model <- gam(scaled_drop ~ log(Goldman_train_lemmas)  + log(-1* train_lemma_diff_raw) + log(Goldman_train_size), family=betar(link="logit"), data = CHRTRM)
+
+summary(both_model)
+
+size_model$coefficients
+lemma_model$coefficients
+drop_model$coefficients
+
+AIC(size_model)
+AIC(lemma_model)
+AIC(drop_model)
+
+
+BIC(size_model)
+BIC(lemma_model)
+BIC(drop_model)
+```
+
+```{r}
+size_model = gam(scaled_drop ~ log(Goldman_train_size), family=betar(link="logit"), data = DeepSpin)
+
+summary(size_model)
+
+res <- predict(size_model, newdata = DeepSpin, se.fit = TRUE, type="response")
+DeepSpin$size_fit <- res$fit
+DeepSpin$size_se <- res$se.fit
+
+lemma_model = gam(scaled_drop ~ log(Goldman_train_lemmas), family=betar(link="logit"), data = DeepSpin)
+
+summary(lemma_model)
+
+res <- predict(lemma_model, newdata = DeepSpin, se.fit = TRUE, type="response")
+DeepSpin$lemma_fit <- res$fit
+DeepSpin$lemma_se <- res$se.fit
+
+drop_model = gam(scaled_drop ~ log(-1*train_lemma_diff_raw), family=betar(link="logit"), data = DeepSpin)
+
+summary(drop_model)
+
+res <- predict(drop_model, newdata = DeepSpin, se.fit = TRUE, type="response")
+DeepSpin$drop_fit <- res$fit
+DeepSpin$drop_se <- res$se.fit
+
+both_model <- gam(scaled_drop ~ log(-1*train_lemma_diff_raw) + log(Goldman_train_size) + log(Goldman_train_lemmas), family=betar(link="logit"), data = DeepSpin)
+
+summary(both_model)
+
+
+size_model$coefficients
+lemma_model$coefficients
+drop_model$coefficients
+
+AIC(size_model)
+AIC(lemma_model)
+AIC(drop_model)
+
+
+BIC(size_model)
+BIC(lemma_model)
+BIC(drop_model)
+```
+
+```{r}
+size_model = gam(scaled_drop ~ log(Goldman_train_size), family=betar(link="logit"), data = CLUZH)
+
+summary(size_model)
+
+res <- predict(size_model, newdata = CLUZH, se.fit = TRUE, type="response")
+CLUZH$size_fit <- res$fit
+CLUZH$size_se <- res$se.fit
+
+lemma_model = gam(scaled_drop ~ log(Goldman_train_lemmas), family=betar(link="logit"), data = CLUZH)
+
+summary(lemma_model)
+
+res <- predict(lemma_model, newdata = CLUZH, se.fit = TRUE, type="response")
+CLUZH$lemma_fit <- res$fit
+CLUZH$lemma_se <- res$se.fit
+
+drop_model = gam(scaled_drop ~ log(-1*train_lemma_diff_raw), family=betar(link="logit"), data = CLUZH)
+
+summary(drop_model)
+
+res <- predict(drop_model, newdata = CLUZH, se.fit = TRUE, type="response")
+CLUZH$drop_fit <- res$fit
+CLUZH$drop_se <- res$se.fit
+
+both_model <- gam(scaled_drop ~ log(Goldman_train_lemmas) + log(-1*train_lemma_diff_raw) + log(Goldman_train_size) , family=betar(link="logit"), data = CLUZH)
+
+summary(both_model)
+
+size_model$coefficients
+lemma_model$coefficients
+drop_model$coefficients
+
+AIC(size_model)
+AIC(lemma_model)
+AIC(drop_model)
+
+
+BIC(size_model)
+BIC(lemma_model)
+BIC(drop_model)
+```
+
+```{r, fig.width = 12, fig.height=4}
+rbind(CLUZH, CHRTRM, DeepSpin) %>% 
+  ggplot(aes(Goldman_train_size, -1*scaled_drop)) + 
+  geom_point(aes(color=Family), size = 3, alpha = 0.6) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  facet_grid(~factor(Model, levels=c("CHR-TRM", "DeepSpin", "CLUZH"))) + 
+  geom_line(aes(Goldman_train_size, -1*size_fit)) + 
+  geom_ribbon(aes(x = Goldman_train_size, 
+                  ymin = -1*(size_fit - 2 * size_se),
+                  ymax = -1*(size_fit + 2 * size_se),
+                  ), fill ="grey",
+                  alpha = 0.4) + 
+  theme_bw() + 
+  xlab("Goldman Training Size") + 
+  ylab("Scaled Accuracy Drop") + 
+  ggtitle("Training Size vs. Accuracy Drop") + 
+  theme(plot.title = element_text(hjust=0.5, size=16)) 
+
+ggsave("figures/train_size_drop.pdf", device="pdf", width = 12, height=4)
+```
+
+```{r, fig.width = 12, fig.height=4}
+rbind(CLUZH, CHRTRM, DeepSpin) %>% 
+  ggplot(aes(Goldman_train_lemmas, -1*scaled_drop)) + 
+  geom_point(aes(color=Family), size = 3, alpha = 0.6) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  facet_grid(~factor(Model, levels=c("CHR-TRM", "DeepSpin", "CLUZH"))) + 
+  geom_line(aes(Goldman_train_lemmas, -1*lemma_fit)) + 
+  geom_ribbon(aes(x = Goldman_train_lemmas, 
+                  ymin = -1*(lemma_fit - 2 * lemma_se),
+                  ymax = -1*(lemma_fit + 2 * lemma_se),
+                  ), fill ="grey",
+                  alpha = 0.4) + 
+  theme_bw() + 
+  xlab("Goldman Training Lemmas") + 
+  ylab("Scaled Accuracy Drop") +
+  ggtitle("Training Lemmas vs. Accuracy Drop") + 
+  theme(plot.title = element_text(hjust=0.5, size=16)) 
+
+ggsave("figures/train_lemmas_drop.pdf", device="pdf", width = 12, height=4)
+```
+
+```{r, fig.width = 12, fig.height=4}
+
+rbind(CLUZH, CHRTRM, DeepSpin) %>% 
+  ggplot(aes(-1*train_lemma_diff_raw, -1*scaled_drop)) + 
+  geom_point(aes(color=Family), size = 3, alpha = 0.6) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  facet_grid(~factor(Model, levels=c("CHR-TRM", "DeepSpin", "CLUZH"))) + 
+  geom_line(aes(-1*train_lemma_diff_raw, -1*drop_fit)) + 
+  geom_ribbon(aes(x = -1*train_lemma_diff_raw, 
+                  ymin = -1*(drop_fit - 2 * drop_se),
+                  ymax = -1*(drop_fit + 2 * drop_se),
+                  ), fill ="grey",
+                  alpha = 0.4) + 
+  theme_bw() + 
+  xlab("Drop in Lemmas from SIGMORPHON to Goldman et al.") + 
+  ylab("Scaled Accuracy Drop") +
+  ggtitle("Training Lemma Drop vs. Accuracy Drop") + 
+  theme(plot.title = element_text(hjust=0.5, size=16)) 
+
+ggsave("figures/lemma_drop_drop.pdf", device="pdf", width = 12, height=4)
+```
+
+# Other Regressions
+
+## Linear Regression: Raw Accuracy
+
+```{r}
+size_model = lm(log(Goldman_scaled_acc) ~ log(Goldman_train_size),  data = CHRTRM)
+summary(size_model)
+res <- predict(size_model, newdata = CHRTRM, se.fit = TRUE, type = "response")
+CHRTRM$size_fit <- res$fit
+CHRTRM$size_se <- res$se.fit
+
+
+lemma_model = lm(log(Goldman_scaled_acc) ~ log(Goldman_train_lemmas), data = CHRTRM)
+res <- predict(lemma_model, newdata = CHRTRM, se.fit = TRUE, type = "response")
+CHRTRM$lemma_fit <- res$fit
+CHRTRM$lemma_se <- res$se.fit
+summary(lemma_model)
+
+both_model <- lm(log(Goldman_scaled_acc) ~ log(Goldman_train_lemmas) + log(Goldman_train_size), data = CHRTRM)
+summary(both_model)
+AIC(size_model)
+AIC(lemma_model)
+AIC(both_model)
+anova(both_model, lemma_model)
+```
+
+```{r}
+size_model = lm(log(Goldman_scaled_acc) ~ log(Goldman_train_size),  data = DeepSpin)
+summary(size_model)
+res <- predict(size_model, newdata = DeepSpin, se.fit = TRUE, type = "response")
+DeepSpin$size_fit <- res$fit
+DeepSpin$size_se <- res$se.fit
+
+
+lemma_model = lm(log(Goldman_scaled_acc) ~ log(Goldman_train_lemmas), data = DeepSpin)
+res <- predict(lemma_model, newdata = DeepSpin, se.fit = TRUE, type = "response")
+DeepSpin$lemma_fit <- res$fit
+DeepSpin$lemma_se <- res$se.fit
+summary(lemma_model)
+
+both_model <- lm(log(Goldman_scaled_acc) ~ log(Goldman_train_lemmas) + log(Goldman_train_size), data = DeepSpin)
+summary(both_model)
+AIC(size_model)
+AIC(lemma_model)
+AIC(both_model)
+anova(both_model, lemma_model)
+```
+
+```{r}
+size_model = lm(log(Goldman_scaled_acc) ~ log(Goldman_train_size),  data = CLUZH)
+summary(size_model)
+res <- predict(size_model, newdata = CLUZH, se.fit = TRUE, type = "response")
+CLUZH$size_fit <- res$fit
+CLUZH$size_se <- res$se.fit
+
+
+lemma_model = lm(log(Goldman_scaled_acc) ~ log(Goldman_train_lemmas), data = CLUZH)
+res <- predict(lemma_model, newdata = CLUZH, se.fit = TRUE, type = "response")
+CLUZH$lemma_fit <- res$fit
+CLUZH$lemma_se <- res$se.fit
+summary(lemma_model)
+
+both_model <- lm(log(Goldman_scaled_acc) ~ log(Goldman_train_lemmas) + log(Goldman_train_size), data = CLUZH)
+summary(both_model)
+AIC(size_model)
+AIC(lemma_model)
+AIC(both_model)
+anova(both_model, lemma_model)
+```
+
+```{r, fig.width = 12, fig.height=4}
+rbind(CLUZH, CHRTRM, DeepSpin) %>% 
+  ggplot(aes(log(Goldman_train_size), log(Goldman_scaled_acc))) + 
+  geom_point(aes(color=Family), size = 3, alpha = 0.6) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  facet_grid(~factor(Model, levels=c("CHR-TRM", "DeepSpin", "CLUZH"))) + 
+  geom_line(aes(log(Goldman_train_size), size_fit)) + 
+  geom_ribbon(aes(x = log(Goldman_train_size), 
+                  ymin = size_fit - 2 * size_se,
+                  ymax = size_fit + 2 * size_se,
+                  ), fill ="grey",
+                  alpha = 0.4) + 
+  theme_bw() + 
+  xlab("Goldman Training Size, Log Scale") + 
+  ylab("Accuracy") + 
+  ggtitle("Training Size vs. Accuracy, Goldman et al. Data") + 
+  theme(plot.title = element_text(hjust=0.5, size=16)) 
+
+ggsave("figures/train_size_lm.pdf", device="pdf", width = 12, height=4)
+```
+
+```{r, fig.width = 12, fig.height=4}
+rbind(CLUZH, CHRTRM, DeepSpin) %>% 
+  ggplot(aes(log(Goldman_train_lemmas), log(Goldman_scaled_acc))) + 
+  geom_point(aes(color=Family), size = 3, alpha = 0.6) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  facet_grid(~factor(Model, levels=c("CHR-TRM", "DeepSpin", "CLUZH"))) + 
+  geom_line(aes(log(Goldman_train_lemmas), lemma_fit)) + 
+  geom_ribbon(aes(x = log(Goldman_train_lemmas), 
+                  ymin = lemma_fit - 2 * lemma_se,
+                  ymax = lemma_fit + 2 * lemma_se,
+                  ), fill ="grey",
+                  alpha = 0.4) + 
+  theme_bw() + 
+  xlab("Goldman Training Lemmas, Log Scale") + 
+  ylab("Accuracy") + 
+  ggtitle("Training Lemmas vs. Accuracy, Goldman et al. Data") + 
+  theme(plot.title = element_text(hjust=0.5, size=16)) 
+
+ggsave("figures/train_lemmas_lm.pdf", device="pdf", width = 12, height=4)
+```
+
+## Logistic Regression: Raw Accuracy
+
+```{r}
+size_model = glm(Goldman_scaled_acc ~ log(Goldman_train_size),  data = CHRTRM, family=binomial)
+summary(size_model)
+res <- predict(size_model, newdata = CHRTRM, se.fit = TRUE, type = "response")
+CHRTRM$size_fit <- res$fit
+CHRTRM$size_se <- res$se.fit
+
+
+lemma_model = glm(Goldman_scaled_acc ~ log(Goldman_train_lemmas), data = CHRTRM, family=binomial)
+res <- predict(lemma_model, newdata = CHRTRM, se.fit = TRUE, type = "response")
+CHRTRM$lemma_fit <- res$fit
+CHRTRM$lemma_se <- res$se.fit
+summary(lemma_model)
+
+both_model <- glm(Goldman_scaled_acc ~ log(Goldman_train_lemmas) + log(Goldman_train_size), data = CHRTRM, family=binomial)
+summary(both_model)
+AIC(size_model)
+AIC(lemma_model)
+AIC(both_model)
+anova(both_model, lemma_model)
+```
+
+```{r}
+size_model = glm(Goldman_scaled_acc ~ log(Goldman_train_size),  data = DeepSpin, family=binomial)
+summary(size_model)
+res <- predict(size_model, newdata = DeepSpin, se.fit = TRUE, type = "response")
+DeepSpin$size_fit <- res$fit
+DeepSpin$size_se <- res$se.fit
+
+
+lemma_model = glm(Goldman_scaled_acc ~ log(Goldman_train_lemmas), data = DeepSpin, family=binomial)
+res <- predict(lemma_model, newdata = CHRTRM, se.fit = TRUE, type = "response")
+DeepSpin$lemma_fit <- res$fit
+DeepSpin$lemma_se <- res$se.fit
+summary(lemma_model)
+
+both_model <- glm(Goldman_scaled_acc ~ log(Goldman_train_lemmas) + log(Goldman_train_size), data = DeepSpin, family=binomial)
+summary(both_model)
+AIC(size_model)
+AIC(lemma_model)
+AIC(both_model)
+anova(both_model, lemma_model)
+```
+
+```{r}
+size_model = glm(Goldman_scaled_acc ~ log(Goldman_train_size),  data = CLUZH, family=binomial)
+summary(size_model)
+res <- predict(size_model, newdata = CLUZH, se.fit = TRUE, type = "response")
+CLUZH$size_fit <- res$fit
+CLUZH$size_se <- res$se.fit
+
+
+lemma_model = glm(Goldman_scaled_acc ~ log(Goldman_train_lemmas), data = CLUZH, family=binomial)
+res <- predict(lemma_model, newdata = CLUZH, se.fit = TRUE, type = "response")
+CLUZH$lemma_fit <- res$fit
+CLUZH$lemma_se <- res$se.fit
+summary(lemma_model)
+
+both_model <- glm(Goldman_scaled_acc ~ log(Goldman_train_lemmas) + log(Goldman_train_size), data = CLUZH, family=binomial)
+summary(both_model)
+AIC(size_model)
+AIC(lemma_model)
+AIC(both_model)
+anova(both_model, lemma_model)
+```
+
+```{r, fig.width = 12, fig.height=4}
+rbind(CLUZH, CHRTRM, DeepSpin) %>% 
+  ggplot(aes(log(Goldman_train_size), Goldman_scaled_acc)) + 
+  geom_point(aes(color=Family), size = 3, alpha = 0.6) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  facet_grid(~factor(Model, levels=c("CHR-TRM", "DeepSpin", "CLUZH"))) + 
+  geom_line(aes(log(Goldman_train_size), size_fit)) + 
+  geom_ribbon(aes(x = log(Goldman_train_size), 
+                  ymin = size_fit - 2 * size_se,
+                  ymax = size_fit + 2 * size_se,
+                  ), fill ="grey",
+                  alpha = 0.4) + 
+  theme_bw() + 
+  xlab("Goldman Training Size, Log Scale") + 
+  ylab("Accuracy") + 
+  ggtitle("Training Size vs. Accuracy, Goldman et al. Data") + 
+  theme(plot.title = element_text(hjust=0.5, size=16)) 
+
+ggsave("figures/train_size_logistic.pdf", device="pdf", width = 12, height=4)
+```
+
+```{r, fig.width = 12, fig.height=4}
+rbind(CLUZH, CHRTRM, DeepSpin) %>% 
+  ggplot(aes(log(Goldman_train_lemmas), Goldman_scaled_acc)) + 
+  geom_point(aes(color=Family), size = 3, alpha = 0.6) + 
+  scale_color_manual(values=c("turquoise", "purple", "gold")) + 
+  facet_grid(~factor(Model, levels=c("CHR-TRM", "DeepSpin", "CLUZH"))) + 
+  geom_line(aes(log(Goldman_train_lemmas), lemma_fit)) + 
+  geom_ribbon(aes(x = log(Goldman_train_lemmas), 
+                  ymin = lemma_fit - 2 * lemma_se,
+                  ymax = lemma_fit + 2 * lemma_se,
+                  ), fill ="grey",
+                  alpha = 0.4) + 
+  theme_bw() + 
+  xlab("Goldman Training Lemmas, Log Scale") + 
+  ylab("Accuracy") + 
+  ggtitle("Training Lemmas vs. Accuracy, Goldman et al. Data") + 
+  theme(plot.title = element_text(hjust=0.5, size=16)) 
+
+ggsave("figures/train_lemmas_logistic.pdf", device="pdf", width = 12, height=4)
+```
